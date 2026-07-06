@@ -86,7 +86,7 @@ namespace PersonalFinanceTracker.Controllers
 
             var redirectUrl = Url.Action("GoogleCallback", "Account", new { returnUrl });
             var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
-            return Challenge(properties, provider);
+            return Challenge(properties, provider);// <-- Triggers real Google OAuth
         }
 
         [HttpGet]

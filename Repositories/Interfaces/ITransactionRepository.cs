@@ -19,7 +19,7 @@ public interface ITransactionRepository
     void DeleteAll(int userId);
     Task<decimal> GetTotalAmountByTypeAsync(int userId, string type);
     Task<Dictionary<string, decimal>> GetExpensesByCategoryAsync(int userId, DateTime startDate, DateTime endDate);
-    Task UpdateCategoryNameAsync(int userId, string oldCategoryName, string categoryType, string newCategoryName);
-    Task SetCategoryToOthersAsync(int userId, string categoryName, string categoryType);
+    Task UpdateCategoryNameAsync(string oldCategoryName, string categoryType, string newCategoryName);
+    Task SetCategoryToOthersAsync(string categoryName, string categoryType);
     Task SaveChangesAsync();
 }

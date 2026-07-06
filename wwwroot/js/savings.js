@@ -3,64 +3,84 @@
  */
 
 (function () {
-    if (!window.AuraApp) return;
+    // Check if the main application namespace exists
+    if (!window.AuraApp) {
+        return;
+    }
 
     const Savings = {
+        // Initialize buttons, forms, and handlers for savings goals page
         initSavings() {
-            // Register triggers
+            // Register target modal show trigger
             const addBtn = document.getElementById('add-goal-btn');
             if (addBtn) {
-                const newAddBtn = addBtn.cloneNode(true);
-                addBtn.parentNode.replaceChild(newAddBtn, addBtn);
-                newAddBtn.addEventListener('click', () => this.openGoalModal());
+                addBtn.addEventListener('click', () => {
+                    this.openGoalModal();
+                });
             }
 
-            // Goal Submit
+            // Savings Goal form submission handler
             const goalForm = document.getElementById('goal-form');
             if (goalForm) {
-                const newGoalForm = goalForm.cloneNode(true);
-                goalForm.parentNode.replaceChild(newGoalForm, goalForm);
-                newGoalForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
+                goalForm.addEventListener('submit', async (event) => {
+                    event.preventDefault();
                     await this.saveSavingsGoal();
                 });
             }
 
-            // Fund Goal Submit
+            // Fund Goal transfer form submission handler
             const fundForm = document.getElementById('goal-fund-form');
             if (fundForm) {
-                const newFundForm = fundForm.cloneNode(true);
-                fundForm.parentNode.replaceChild(newFundForm, fundForm);
-                newFundForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
+                fundForm.addEventListener('submit', async (event) => {
+                    event.preventDefault();
                     await this.transferGoalFunds();
                 });
             }
 
-            // Close actions
+            // Close actions for forms & modal elements
             const closeBtn = document.getElementById('goal-modal-close-btn');
             const cancelBtn = document.getElementById('goal-cancel-btn');
-            if (closeBtn) closeBtn.addEventListener('click', () => this.hideModal('goal-modal'));
-            if (cancelBtn) cancelBtn.addEventListener('click', () => this.hideModal('goal-modal'));
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    this.hideModal('goal-modal');
+                });
+            }
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', () => {
+                    this.hideModal('goal-modal');
+                });
+            }
 
             const closeFundBtn = document.getElementById('goal-fund-modal-close-btn');
             const cancelFundBtn = document.getElementById('goal-fund-cancel-btn');
-            if (closeFundBtn) closeFundBtn.addEventListener('click', () => this.hideModal('goal-fund-modal'));
-            if (cancelFundBtn) cancelFundBtn.addEventListener('click', () => this.hideModal('goal-fund-modal'));
+            if (closeFundBtn) {
+                closeFundBtn.addEventListener('click', () => {
+                    this.hideModal('goal-fund-modal');
+                });
+            }
+            if (cancelFundBtn) {
+                cancelFundBtn.addEventListener('click', () => {
+                    this.hideModal('goal-fund-modal');
+                });
+            }
 
             this.loadSavingsGoals();
         },
 
+        // Setup options inside new goal pop-up modal
         openGoalModal() {
             const form = document.getElementById('goal-form');
-            form.reset();
+            if (form) {
+                form.reset();
+            }
 
-            const targetPrefix = document.getElementById('goal-target');
-            // Select all prefix placeholders
-            document.querySelectorAll('.modal-currency-prefix').forEach(el => {
-                el.textContent = this.state.currency;
-            });
+            // Ingest target currency sign prefixes
+            const prefixes = document.querySelectorAll('.modal-currency-prefix');
+            for (let i = 0; i < prefixes.length; i++) {
+                prefixes[i].textContent = this.state.currency;
+            }
 
+            // Set default date to exactly 1 year from now
             const targetDate = new Date();
             targetDate.setFullYear(targetDate.getFullYear() + 1);
             document.getElementById('goal-date').value = targetDate.toISOString().substring(0, 10);
@@ -68,6 +88,7 @@
             this.showModal('goal-modal');
         },
 
+        // Save new savings goal record to DB
         async saveSavingsGoal() {
             const title = document.getElementById('goal-title').value;
             const targetAmount = parseFloat(document.getElementById('goal-target').value);
@@ -79,49 +100,57 @@
                 return;
             }
 
-            const payload = { id: 0, title, targetAmount, currentAmount, targetDate };
+            const payload = { 
+                id: 0, 
+                title: title, 
+                targetAmount: targetAmount, 
+                currentAmount: currentAmount, 
+                targetDate: targetDate 
+            };
 
             try {
-                const r = await fetch('/api/finance/savings', {
+                const response = await fetch('/api/finance/savings', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
-                if (r.ok) {
+                if (response.ok) {
                     this.hideModal('goal-modal');
                     this.showAlert('Goal Created', 'New savings goal has been configured.', 'success');
                     this.loadSavingsGoals();
                 } else {
-                    const err = await r.json();
+                    const err = await response.json();
                     this.showAlert('Error', err.message || 'Failed to create goal.', 'danger');
                 }
-            } catch (e) {
+            } catch (error) {
                 this.showAlert('Error', 'Failed to connect to API.', 'danger');
             }
         },
 
-        openFundModal(id, type, title) {
-            document.getElementById('goal-fund-id').value = id;
-            document.getElementById('goal-fund-type').value = type;
+        // Open modal for deposits (Save) or withdrawals (Use) funds from goal
+        openFundModal(goalId, transferType, goalTitle) {
+            document.getElementById('goal-fund-id').value = goalId;
+            document.getElementById('goal-fund-type').value = transferType;
             document.getElementById('goal-fund-amount').value = '';
 
-            document.querySelectorAll('.modal-currency-prefix').forEach(el => {
-                el.textContent = this.state.currency;
-            });
+            const prefixes = document.querySelectorAll('.modal-currency-prefix');
+            for (let i = 0; i < prefixes.length; i++) {
+                prefixes[i].textContent = this.state.currency;
+            }
 
             const titleEl = document.getElementById('goal-fund-title');
             const subtitleEl = document.getElementById('goal-fund-subtitle');
             const submitBtn = document.getElementById('goal-fund-submit-btn');
 
-            if (type === 'deposit') {
+            if (transferType === 'deposit') {
                 titleEl.textContent = 'Save Money';
-                subtitleEl.textContent = `Transfer spendable funds into "${title}".`;
+                subtitleEl.textContent = `Transfer spendable funds into "${goalTitle}".`;
                 submitBtn.textContent = 'Deposit Funds';
                 submitBtn.className = 'btn btn-primary';
             } else {
                 titleEl.textContent = 'Withdraw Money';
-                subtitleEl.textContent = `Release funds from "${title}" back into Net Balance.`;
+                subtitleEl.textContent = `Release funds from "${goalTitle}" back into Net Balance.`;
                 submitBtn.textContent = 'Withdraw Funds';
                 submitBtn.className = 'btn btn-danger';
             }
@@ -129,6 +158,7 @@
             this.showModal('goal-fund-modal');
         },
 
+        // Save deposit/withdrawal adjustment to DB
         async transferGoalFunds() {
             const id = parseInt(document.getElementById('goal-fund-id').value);
             const type = document.getElementById('goal-fund-type').value;
@@ -141,45 +171,60 @@
 
             try {
                 const queryUrl = `/api/finance/savings/fund?id=${id}&amount=${amount}&type=${type}`;
-                const r = await fetch(queryUrl, { method: 'POST' });
+                const response = await fetch(queryUrl, { 
+                    method: 'POST' 
+                });
 
-                if (r.ok) {
+                if (response.ok) {
                     this.hideModal('goal-fund-modal');
-                    this.showAlert('Transferred', type === 'deposit' ? 'Added savings to goal!' : 'Withdrawn savings from goal.', 'success');
+                    
+                    let successMessage = 'Withdrawn savings from goal.';
+                    if (type === 'deposit') {
+                        successMessage = 'Added savings to goal!';
+                    }
+                    this.showAlert('Transferred', successMessage, 'success');
+                    
                     this.loadSavingsGoals();
                 } else {
-                    const err = await r.json();
+                    const err = await response.json();
                     this.showAlert('Error', err.message || 'Transfer failed.', 'danger');
                 }
-            } catch (e) {
+            } catch (error) {
                 this.showAlert('Error', 'Connection to API failed.', 'danger');
             }
         },
 
-        async deleteSavingsGoal(id) {
-            this.showAlert('Confirm Delete', 'Are you sure you want to delete this savings goal? Money stored in it will be lost.', 'danger', async () => {
+        // Request API to delete a goal
+        async deleteSavingsGoal(goalId) {
+            const warningMsg = 'Are you sure you want to delete this savings goal? Money stored in it will be lost.';
+            this.showAlert('Confirm Delete', warningMsg, 'danger', async () => {
                 try {
-                    const r = await fetch(`/api/finance/savings/${id}`, { method: 'DELETE' });
-                    if (r.ok) {
+                    const response = await fetch(`/api/finance/savings/${goalId}`, { 
+                        method: 'DELETE' 
+                    });
+                    if (response.ok) {
                         this.showAlert('Deleted', 'Savings goal deleted.', 'success');
                         this.loadSavingsGoals();
                     } else {
                         this.showAlert('Error', 'Failed to delete goal.', 'danger');
                     }
-                } catch (e) {
+                } catch (error) {
                     this.showAlert('Error', 'Failed to delete goal.', 'danger');
                 }
             });
         },
 
+        // Pull savings records and render cards inside grid layout
         async loadSavingsGoals() {
             const grid = document.getElementById('savings-grid-container');
-            if (!grid) return;
+            if (!grid) {
+                return;
+            }
 
             try {
-                const r = await fetch('/api/finance/savings');
-                if (r.ok) {
-                    const list = await r.json();
+                const response = await fetch('/api/finance/savings');
+                if (response.ok) {
+                    const list = await response.json();
                     grid.innerHTML = '';
 
                     if (list.length === 0) {
@@ -193,27 +238,40 @@
                         return;
                     }
 
-                    list.forEach(g => {
+                    // Render cards
+                    for (let i = 0; i < list.length; i++) {
+                        const item = list[i];
                         const card = document.createElement('div');
                         card.className = 'card goal-card';
 
-                        const percent = g.targetAmount > 0 ? (g.currentAmount / g.targetAmount) * 100 : 0;
+                        let percent = 0;
+                        if (item.targetAmount > 0) {
+                            percent = (item.currentAmount / item.targetAmount) * 100;
+                        }
                         const percentStr = percent.toFixed(0) + '%';
-                        const dateStr = new Date(g.targetDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                        
+                        const dateObj = new Date(item.targetDate);
+                        const dateStr = dateObj.toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric' 
+                        });
+
+                        const progressFillWidth = Math.min(percent, 100);
 
                         card.innerHTML = `
                             <div class="goal-progress-percentage">${percentStr}</div>
                             <div class="goal-info">
-                                <h4>${g.title}</h4>
+                                <h4>${item.title}</h4>
                                 <span class="goal-date"><i class="fa-solid fa-calendar-day"></i> Target: ${dateStr}</span>
                             </div>
                             <div>
                                 <div class="progress-bar-container">
-                                    <div class="progress-fill progress-green" style="width: ${Math.min(percent, 100)}%"></div>
+                                    <div class="progress-fill progress-green" style="width: ${progressFillWidth}%"></div>
                                 </div>
                                 <div class="goal-progress-details">
-                                    <span class="goal-current-amount">${this.formatCurrency(g.currentAmount)}</span>
-                                    <span class="goal-target-amount">of ${this.formatCurrency(g.targetAmount)}</span>
+                                    <span class="goal-current-amount">${this.formatCurrency(item.currentAmount)}</span>
+                                    <span class="goal-target-amount">of ${this.formatCurrency(item.targetAmount)}</span>
                                 </div>
                             </div>
                             <div class="goal-actions">
@@ -223,18 +281,26 @@
                             </div>
                         `;
 
-                        card.querySelector('.deposit-btn').addEventListener('click', () => this.openFundModal(g.id, 'deposit', g.title));
-                        card.querySelector('.withdraw-btn').addEventListener('click', () => this.openFundModal(g.id, 'withdraw', g.title));
-                        card.querySelector('.delete-btn').addEventListener('click', () => this.deleteSavingsGoal(g.id));
+                        // Bind actions
+                        card.querySelector('.deposit-btn').addEventListener('click', () => {
+                            this.openFundModal(item.id, 'deposit', item.title);
+                        });
+                        card.querySelector('.withdraw-btn').addEventListener('click', () => {
+                            this.openFundModal(item.id, 'withdraw', item.title);
+                        });
+                        card.querySelector('.delete-btn').addEventListener('click', () => {
+                            this.deleteSavingsGoal(item.id);
+                        });
 
                         grid.appendChild(card);
-                    });
+                    }
                 }
-            } catch (e) {
-                console.error('Failed to load savings goals', e);
+            } catch (error) {
+                console.error('Failed to load savings goals', error);
             }
         }
     };
 
+    // Attach to core application namespace
     Object.assign(window.AuraApp, Savings);
 })();

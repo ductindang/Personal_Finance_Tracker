@@ -3,97 +3,155 @@
  */
 
 (function () {
-    if (!window.AuraApp) return;
+    // Check if the main application namespace exists
+    if (!window.AuraApp) {
+        return;
+    }
 
     const Dashboard = {
+        // Initialize dashboard summaries, charts, and recent transaction records
         async initDashboard() {
             await this.loadDashboardSummary();
             await this.loadDashboardCharts();
             await this.loadRecentTransactions();
         },
 
+        // Fetch total balance, total income, and total expenses to display in top banners
         async loadDashboardSummary() {
             try {
-                const r = await fetch('/api/finance/summary');
-                if (r.ok) {
-                    const s = await r.json();
+                const response = await fetch('/api/finance/summary');
+                if (response.ok) {
+                    const summary = await response.json();
                     const balanceEl = document.getElementById('dash-balance');
                     const incomeEl = document.getElementById('dash-income');
                     const expenseEl = document.getElementById('dash-expense');
                     
-                    if (balanceEl) balanceEl.textContent = this.formatCurrency(s.balance);
-                    if (incomeEl) incomeEl.textContent = this.formatCurrency(s.income);
-                    if (expenseEl) expenseEl.textContent = this.formatCurrency(s.expense);
+                    if (balanceEl) {
+                        balanceEl.textContent = this.formatCurrency(summary.balance);
+                    }
+                    if (incomeEl) {
+                        incomeEl.textContent = this.formatCurrency(summary.income);
+                    }
+                    if (expenseEl) {
+                        expenseEl.textContent = this.formatCurrency(summary.expense);
+                    }
                 }
-            } catch (e) {
-                console.error('Failed to load dashboard summary', e);
+            } catch (error) {
+                console.error('Failed to load dashboard summary', error);
             }
         },
 
+        // Fetch recent transactions list and display them in the dashboard table
         async loadRecentTransactions() {
             const tbody = document.getElementById('recent-transactions-tbody');
-            if (!tbody) return;
+            if (!tbody) {
+                return;
+            }
 
             try {
-                const r = await fetch('/api/finance/transactions/recent');
-                if (r.ok) {
-                    const list = await r.json();
-                    tbody.innerHTML = '';
+                const response = await fetch('/api/finance/transactions/recent');
+                if (response.ok) {
+                    const list = await response.json();
+                    tbody.innerHTML = ''; // Clear older table content
 
                     if (list.length === 0) {
                         tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">No transactions recorded. Click "Add Transaction" to start.</td></tr>`;
                         return;
                     }
 
-                    list.forEach(t => {
+                    // Render rows
+                    for (let i = 0; i < list.length; i++) {
+                        const transaction = list[i];
                         const tr = document.createElement('tr');
-                        const dateStr = new Date(t.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-                        const sign = t.type === 'income' ? '+' : '-';
-                        const amountClass = t.type === 'income' ? 'amount-income' : 'amount-expense';
+                        
+                        const dateObj = new Date(transaction.date);
+                        const dateStr = dateObj.toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric' 
+                        });
+                        
+                        let sign = '-';
+                        let amountClass = 'amount-expense';
+                        if (transaction.type === 'income') {
+                            sign = '+';
+                            amountClass = 'amount-income';
+                        }
 
                         tr.innerHTML = `
-                            <td>${t.description}</td>
-                            <td><span class="badge badge-category">${t.category}</span></td>
+                            <td>${transaction.description}</td>
+                            <td><span class="badge badge-category">${transaction.category}</span></td>
                             <td>${dateStr}</td>
-                            <td class="${amountClass}">${sign}${this.formatCurrency(t.amount)}</td>
+                            <td class="${amountClass}">${sign}${this.formatCurrency(transaction.amount)}</td>
                             <td>
-                                <button class="btn-icon delete-btn" title="Delete" data-id="${t.id}">
+                                <button class="btn-icon delete-btn" title="Delete" data-id="${transaction.id}">
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
                             </td>
                         `;
                         
-                        tr.querySelector('.delete-btn').addEventListener('click', () => this.deleteTransaction(t.id));
+                        // Bind delete action to button
+                        const deleteBtn = tr.querySelector('.delete-btn');
+                        if (deleteBtn) {
+                            deleteBtn.addEventListener('click', () => {
+                                this.deleteTransaction(transaction.id);
+                            });
+                        }
+                        
                         tbody.appendChild(tr);
-                    });
+                    }
                 }
-            } catch (e) {
-                console.error('Failed to load recent transactions', e);
+            } catch (error) {
+                console.error('Failed to load recent transactions', error);
             }
         },
 
+        // Fetch all transactions data to process and build the interactive charts
         async loadDashboardCharts() {
             try {
                 const transResponse = await fetch('/api/finance/transactions?pageSize=1000');
-                if (!transResponse.ok) return;
+                if (!transResponse.ok) {
+                    return;
+                }
 
                 const transObj = await transResponse.json();
                 const list = transObj.data;
 
                 // 1. Prepare Category Expense Chart Data
                 const expensesByCategory = {};
-                this.state.categories.expense.forEach(c => expensesByCategory[c] = 0);
+                
+                // Initialize categories with zero
+                const expenseCats = this.state.categories.expense;
+                for (let i = 0; i < expenseCats.length; i++) {
+                    expensesByCategory[expenseCats[i]] = 0;
+                }
 
-                list.filter(t => t.type === 'expense').forEach(t => {
-                    if (expensesByCategory[t.category] !== undefined) {
-                        expensesByCategory[t.category] += t.amount;
-                    } else {
-                        expensesByCategory['Others'] = (expensesByCategory['Others'] || 0) + t.amount;
+                // Sum up categories
+                for (let i = 0; i < list.length; i++) {
+                    const t = list[i];
+                    if (t.type === 'expense') {
+                        if (expensesByCategory[t.category] !== undefined) {
+                            expensesByCategory[t.category] += t.amount;
+                        } else {
+                            if (expensesByCategory['Others'] === undefined) {
+                                expensesByCategory['Others'] = 0;
+                            }
+                            expensesByCategory['Others'] += t.amount;
+                        }
                     }
-                });
+                }
 
-                const catLabels = Object.keys(expensesByCategory).filter(c => expensesByCategory[c] > 0);
-                const catData = catLabels.map(c => expensesByCategory[c]);
+                const catLabels = [];
+                const catData = [];
+                const allCategoryNames = Object.keys(expensesByCategory);
+                
+                for (let i = 0; i < allCategoryNames.length; i++) {
+                    const catName = allCategoryNames[i];
+                    if (expensesByCategory[catName] > 0) {
+                        catLabels.push(catName);
+                        catData.push(expensesByCategory[catName]);
+                    }
+                }
 
                 // 2. Prepare Cash Flow Chart Data (last 6 months)
                 const monthlyData = {};
@@ -101,31 +159,55 @@
                     const d = new Date();
                     d.setMonth(d.getMonth() - i);
                     const key = d.toISOString().substring(0, 7); // YYYY-MM
-                    monthlyData[key] = { monthLabel: d.toLocaleDateString('en-US', { month: 'short' }), income: 0, expense: 0 };
+                    const monthText = d.toLocaleDateString('en-US', { month: 'short' });
+                    
+                    monthlyData[key] = { 
+                        monthLabel: monthText, 
+                        income: 0, 
+                        expense: 0 
+                    };
                 }
 
-                list.forEach(t => {
-                    const key = t.date.substring(0, 7);
-                    if (monthlyData[key]) {
-                        if (t.type === 'income') monthlyData[key].income += t.amount;
-                        else monthlyData[key].expense += t.amount;
+                // Fill monthly data
+                for (let i = 0; i < list.length; i++) {
+                    const t = list[i];
+                    const key = t.date.substring(0, 7); // extract YYYY-MM
+                    if (monthlyData[key] !== undefined) {
+                        if (t.type === 'income') {
+                            monthlyData[key].income += t.amount;
+                        } else {
+                            monthlyData[key].expense += t.amount;
+                        }
                     }
-                });
+                }
 
                 const months = Object.keys(monthlyData);
-                const barLabels = months.map(m => monthlyData[m].monthLabel);
-                const incomeData = months.map(m => monthlyData[m].income);
-                const expenseData = months.map(m => monthlyData[m].expense);
+                const barLabels = [];
+                const incomeData = [];
+                const expenseData = [];
+                
+                for (let i = 0; i < months.length; i++) {
+                    const monthKey = months[i];
+                    barLabels.push(monthlyData[monthKey].monthLabel);
+                    incomeData.push(monthlyData[monthKey].income);
+                    expenseData.push(monthlyData[monthKey].expense);
+                }
 
                 // Setup Themes specific colors
                 const isLight = this.state.theme === 'light';
-                const gridColor = isLight ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)';
-                const labelColor = isLight ? '#4b5563' : '#9ca3af';
+                let gridColor = 'rgba(255, 255, 255, 0.05)';
+                let labelColor = '#9ca3af';
+                if (isLight) {
+                    gridColor = 'rgba(0, 0, 0, 0.05)';
+                    labelColor = '#4b5563';
+                }
 
                 // Chart 1: Cashflow (Bar chart)
                 const cashflowCtx = document.getElementById('cashflowChart');
                 if (cashflowCtx) {
-                    if (this.charts.cashflow) this.charts.cashflow.destroy();
+                    if (this.charts.cashflow) {
+                        this.charts.cashflow.destroy(); // Destroy previous chart to avoid layout overlapping
+                    }
 
                     this.charts.cashflow = new Chart(cashflowCtx, {
                         type: 'bar',
@@ -163,7 +245,9 @@
                 // Chart 2: Category distribution (Doughnut)
                 const categoryCtx = document.getElementById('categoryChart');
                 if (categoryCtx) {
-                    if (this.charts.category) this.charts.category.destroy();
+                    if (this.charts.category) {
+                        this.charts.category.destroy(); // Destroy previous chart
+                    }
 
                     if (catLabels.length === 0) {
                         this.charts.category = new Chart(categoryCtx, {
@@ -172,7 +256,11 @@
                                 labels: ['No Expense Data'],
                                 datasets: [{ data: [1], backgroundColor: ['rgba(156, 163, 175, 0.2)'] }]
                             },
-                            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: labelColor } } } }
+                            options: { 
+                                responsive: true, 
+                                maintainAspectRatio: false, 
+                                plugins: { legend: { labels: { color: labelColor } } } 
+                            }
                         });
                     } else {
                         const donutColors = [
@@ -200,8 +288,8 @@
                         });
                     }
                 }
-            } catch (e) {
-                console.error('Failed to load dashboard charts', e);
+            } catch (error) {
+                console.error('Failed to load dashboard charts', error);
             }
         }
     };

@@ -4,6 +4,7 @@
  * ------------------------------------------------------------- */
 
 const LoginPage = (() => {
+    // DOM selectors object
     const DOM = {
         themeSelect: '#theme-select',
         passwordField: '#Password',
@@ -13,6 +14,7 @@ const LoginPage = (() => {
         placeholderBtns: '.placeholder-btn'
     };
 
+    // Initialize layout theme dropdown on login page
     const initTheme = () => {
         const themeSelect = document.querySelector(DOM.themeSelect);
         const currentTheme = localStorage.getItem('aura_theme') || 'dark';
@@ -29,8 +31,9 @@ const LoginPage = (() => {
         }
     };
 
-    const applyTheme = (theme) => {
-        if (theme === 'light') {
+    // Apply classes for background theme colors
+    const applyTheme = (themeName) => {
+        if (themeName === 'light') {
             document.body.classList.add('light-theme');
             document.body.classList.remove('dark-theme');
         } else {
@@ -39,37 +42,45 @@ const LoginPage = (() => {
         }
     };
 
+    // Show or hide password characters
     const initPasswordToggle = () => {
         const toggleBtn = document.querySelector(DOM.togglePasswordBtn);
         const passwordField = document.querySelector(DOM.passwordField);
         if (toggleBtn && passwordField) {
             toggleBtn.addEventListener('click', () => {
-                const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordField.setAttribute('type', type);
+                const isPassword = passwordField.getAttribute('type') === 'password';
                 
-                // Toggle between open eye and closed eye icons
-                if (type === 'password') {
-                    toggleBtn.classList.remove('fa-eye');
-                    toggleBtn.classList.add('fa-eye-slash');
-                } else {
+                if (isPassword) {
+                    passwordField.setAttribute('type', 'text');
                     toggleBtn.classList.remove('fa-eye-slash');
                     toggleBtn.classList.add('fa-eye');
+                } else {
+                    passwordField.setAttribute('type', 'password');
+                    toggleBtn.classList.remove('fa-eye');
+                    toggleBtn.classList.add('fa-eye-slash');
                 }
             });
         }
     };
 
-    const showToast = (title, message, type = 'info') => {
+    // Build and display toaster messages (e.g. alerts or errors)
+    const showToast = (title, message, toastType = 'info') => {
         const container = document.querySelector(DOM.toastContainer);
-        if (!container) return;
+        if (!container) {
+            return;
+        }
 
         const toast = document.createElement('div');
-        toast.className = `toast toast--${type}`;
+        toast.className = `toast toast--${toastType}`;
 
         let iconClass = 'fa-circle-info';
-        if (type === 'error') iconClass = 'fa-circle-xmark';
-        else if (type === 'warning') iconClass = 'fa-circle-exclamation';
-        else if (type === 'success') iconClass = 'fa-circle-check';
+        if (toastType === 'error') {
+            iconClass = 'fa-circle-xmark';
+        } else if (toastType === 'warning') {
+            iconClass = 'fa-circle-exclamation';
+        } else if (toastType === 'success') {
+            iconClass = 'fa-circle-check';
+        }
 
         toast.innerHTML = `
             <i class="fa-solid ${iconClass} toast-icon"></i>
@@ -82,15 +93,20 @@ const LoginPage = (() => {
 
         container.appendChild(toast);
 
-        // Force a reflow and add the active class to trigger css slide-in animation
-        setTimeout(() => toast.classList.add('show'), 10);
+        // Delay 10ms to allow browser to trigger CSS entrance animation
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
 
-        // Bind click on close button
-        toast.querySelector('.toast-close').addEventListener('click', () => {
-            removeToast(toast);
-        });
+        // Bind click handler on close button
+        const closeBtn = toast.querySelector('.toast-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                removeToast(toast);
+            });
+        }
 
-        // Auto close after 5 seconds
+        // Auto close toast after 5 seconds
         setTimeout(() => {
             if (toast.parentNode) {
                 removeToast(toast);
@@ -98,6 +114,7 @@ const LoginPage = (() => {
         }, 5000);
     };
 
+    // Clear toast with animation
     const removeToast = (toast) => {
         toast.classList.remove('show');
         toast.addEventListener('transitionend', () => {
@@ -107,6 +124,7 @@ const LoginPage = (() => {
         });
     };
 
+    // Check for validation errors or login issues returned by server
     const initErrorHandling = () => {
         // 1. Read TempData Message if populated
         const serverErrorData = document.querySelector('#server-error-data');
@@ -118,52 +136,55 @@ const LoginPage = (() => {
         const summaryContainer = document.querySelector('#validation-summary-container');
         if (summaryContainer) {
             const errors = summaryContainer.querySelectorAll('li');
-            if (errors.length > 0) {
-                errors.forEach(err => {
-                    const text = err.textContent.trim();
-                    // ASP.NET Core defaults validation summary template containing a hidden/empty first list item sometimes
-                    if (text && text !== "" && err.style.display !== "none") {
-                        showToast("Validation Error", text, "error");
-                    }
-                });
+            for (let i = 0; i < errors.length; i++) {
+                const err = errors[i];
+                const text = err.textContent.trim();
+                if (text && text !== "" && err.style.display !== "none") {
+                    showToast("Validation Error", text, "error");
+                }
             }
         }
     };
 
+    // Integrate with jQuery unobtrusive form validation to validate inputs dynamically
     const initFormSubmit = () => {
         const form = document.querySelector(DOM.authForm);
         if (form) {
             const jqForm = $(form);
 
-            // Enable on-blur (onfocusout) validation by overriding the
-            // jquery-validation-unobtrusive defaults which disable it.
+            // Configure jQuery validator behavior
             const validator = jqForm.data('validator');
             if (validator) {
+                // Validate input when user clicks away from a field
                 validator.settings.onfocusout = function (element) {
-                    // Only validate once the user has interacted (dirty)
-                    if (!this.checkable(element) && (element.name in this.submitted || !this.optional(element))) {
+                    const isCheckable = this.checkable(element);
+                    const isAlreadySubmitted = element.name in this.submitted;
+                    const isRequired = !this.optional(element);
+
+                    if (!isCheckable && (isAlreadySubmitted || isRequired)) {
                         this.element(element);
                     }
                 };
 
-                // Also enable eager validation after a field has been
-                // marked invalid once (so correcting clears the error).
-                validator.settings.onkeyup = function (element, event) {
+                // Remove error warning immediately when correcting input
+                validator.settings.onkeyup = function (element) {
                     if (element.name in this.submitted) {
                         this.element(element);
                     }
                 };
             }
 
+            // Click submit button handler
             const submitBtn = form.querySelector('button[type="submit"]');
             if (submitBtn) {
-                submitBtn.addEventListener('click', (e) => {
+                submitBtn.addEventListener('click', () => {
                     if (jqForm.length && !jqForm.valid()) {
                         setTimeout(() => {
                             const firstError = form.querySelector('.field-validation-error');
-                            const msg = firstError && firstError.textContent.trim() !== ""
-                                ? firstError.textContent.trim() 
-                                : "Please correct the highlighted errors in the form.";
+                            let msg = "Please correct the highlighted errors in the form.";
+                            if (firstError && firstError.textContent.trim() !== "") {
+                                msg = firstError.textContent.trim();
+                            }
                             showToast("Form Incomplete", msg, "warning");
                         }, 50);
                     }
@@ -172,17 +193,21 @@ const LoginPage = (() => {
         }
     };
 
+    // Temporary placeholder message for unsupported login options
     const initSocialPlaceholders = () => {
         const btns = document.querySelectorAll(DOM.placeholderBtns);
-        btns.forEach(btn => {
+        for (let i = 0; i < btns.length; i++) {
+            const btn = btns[i];
             btn.addEventListener('click', (e) => {
                 e.preventDefault();
                 const provider = btn.getAttribute('data-provider');
-                showToast("Provider Offline", `${provider} login is not configured for this workspace. Please sign in with Google or account credentials.`, "warning");
+                const warningMsg = `${provider} login is not configured for this workspace. Please sign in with Google or account credentials.`;
+                showToast("Provider Offline", warningMsg, "warning");
             });
-        });
+        }
     };
 
+    // Public module exports
     return {
         init: () => {
             initTheme();
@@ -191,8 +216,13 @@ const LoginPage = (() => {
             initFormSubmit();
             initSocialPlaceholders();
         },
-        toast: (title, message, type) => showToast(title, message, type)
+        toast: (title, message, toastType) => {
+            showToast(title, message, toastType);
+        }
     };
 })();
 
-document.addEventListener('DOMContentLoaded', () => LoginPage.init());
+// Auto-run initialization when layout finishes loading
+document.addEventListener('DOMContentLoaded', () => {
+    LoginPage.init();
+});

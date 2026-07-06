@@ -125,10 +125,10 @@ public class TransactionRepository : ITransactionRepository
         return expenses.ToDictionary(e => e.Category, e => e.Spent);
     }
 
-    public async Task UpdateCategoryNameAsync(int userId, string oldCategoryName, string categoryType, string newCategoryName)
+    public async Task UpdateCategoryNameAsync(string oldCategoryName, string categoryType, string newCategoryName)
     {
         var trans = await _context.Transactions
-            .Where(t => t.UserId == userId && t.Category == oldCategoryName && t.Type == categoryType)
+            .Where(t => t.Category == oldCategoryName && t.Type == categoryType)
             .ToListAsync();
         foreach (var t in trans)
         {
@@ -136,10 +136,10 @@ public class TransactionRepository : ITransactionRepository
         }
     }
 
-    public async Task SetCategoryToOthersAsync(int userId, string categoryName, string categoryType)
+    public async Task SetCategoryToOthersAsync(string categoryName, string categoryType)
     {
         var trans = await _context.Transactions
-            .Where(t => t.UserId == userId && t.Category == categoryName && t.Type == categoryType)
+            .Where(t => t.Category == categoryName && t.Type == categoryType)
             .ToListAsync();
         foreach (var t in trans)
         {
