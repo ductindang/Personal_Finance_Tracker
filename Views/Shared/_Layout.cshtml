@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Aura Finance Tracker</title>
+    
+    <!-- Outfit Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom Site Styles -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @await RenderSectionAsync("Head", required: false)
+</head>
+<body class="dark-theme">
+    <!-- Dynamic Gradient Background Blobs -->
+    <div class="bg-blur blob-1"></div>
+    <div class="bg-blur blob-2"></div>
+    <div class="bg-blur blob-3"></div>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <span class="brand-name">AURA</span>
+            </div>
+            
+            <nav class="nav-menu">
+                <a asp-controller="Home" asp-action="Index" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a asp-controller="Home" asp-action="Transactions" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Transactions" ? "active" : "")">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>Transactions</span>
+                </a>
+                <a asp-controller="Home" asp-action="Budgets" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Budgets" ? "active" : "")">
+                    <i class="fa-solid fa-piggy-bank"></i>
+                    <span>Budgets</span>
+                </a>
+                <a asp-controller="Home" asp-action="Savings" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Savings" ? "active" : "")">
+                    <i class="fa-solid fa-bullseye"></i>
+                    <span>Savings Goals</span>
+                </a>
+                <a asp-controller="Home" asp-action="Settings" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Settings" ? "active" : "")">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    var profilePic = User.FindFirst("ProfilePicture")?.Value ?? "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/712020:e878da9b-63da-4d9d-895d-92478f695579/152fb82e-dd1a-44a4-bdca-57ab9feb5d58/48";
+                    var displayName = User.Identity?.Name ?? "User";
+                    <div class="user-profile-widget">
+                        <img src="@profilePic" alt="Avatar" class="user-avatar" />
+                        <div class="user-info">
+                            <span class="user-name">@displayName</span>
+                            <span class="user-role">Authenticated</span>
+                        </div>
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form">
+                            <button type="submit" class="logout-btn" title="Log Out">
+                                <i class="fa-solid fa-sign-out-alt"></i>
+                            </button>
+                        </form>
+                    </div>
+                }
+                <button id="theme-toggle-btn" class="theme-btn" aria-label="Toggle dark and light theme">
+                    <i class="fa-solid fa-moon"></i>
+                    <span id="theme-btn-text">Dark Mode</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Top Header -->
+            <header class="header">
+                <div class="page-title">
+                    <h1>@ViewData["Title"]</h1>
+                    <p>@ViewData["Subtitle"]</p>
+                </div>
+                <div class="header-actions">
+                    <button id="quick-add-btn" class="btn btn-primary" aria-label="Add new transaction">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Add Transaction</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Render Razor Views Body -->
+            @RenderBody()
+        </main>
+    </div>
+
+    <!-- Modals for CRUD operations -->
+    <!-- Transaction Modal (Add/Edit) -->
+    <div class="modal" id="transaction-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="transaction-modal-title">Add Transaction</h2>
+                <button class="modal-close" id="transaction-modal-close-btn">&times;</button>
+            </div>
+            <form id="transaction-form" class="modal-form">
+                <input type="hidden" id="trans-id">
+                
+                <div class="form-group">
+                    <label>Transaction Type</label>
+                    <div class="toggle-switch-wrapper">
+                        <input type="radio" id="type-expense" name="trans-type" value="expense" checked>
+                        <label for="type-expense" class="toggle-btn toggle-expense">Expense</label>
+                        
+                        <input type="radio" id="type-income" name="trans-type" value="income">
+                        <label for="type-income" class="toggle-btn toggle-income">Income</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="trans-amount">Amount</label>
+                    <div class="input-prefix-wrapper">
+                        <span class="currency-prefix modal-currency-prefix">$</span>
+                        <input type="number" id="trans-amount" step="0.01" min="0.01" required placeholder="0.00">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="trans-category">Category</label>
+                        <select id="trans-category" required>
+                            <!-- Populated dynamically based on Type -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="trans-date">Date</label>
+                        <input type="date" id="trans-date" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="trans-description">Description</label>
+                    <input type="text" id="trans-description" required placeholder="e.g., Grocery Shopping">
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" id="trans-cancel-btn" class="btn btn-secondary-outline">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Transaction</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Alert / Confirm Modal -->
+    <div class="modal modal-alert" id="alert-modal">
+        <div class="modal-content alert-content">
+            <div class="alert-icon" id="alert-modal-icon">
+                <i class="fa-solid fa-circle-info"></i>
+            </div>
+            <h3 id="alert-modal-title">Alert Title</h3>
+            <p id="alert-modal-message">Alert message body goes here.</p>
+            <div class="modal-actions alert-actions">
+                <button id="alert-modal-cancel-btn" class="btn btn-secondary-outline">Cancel</button>
+                <button id="alert-modal-ok-btn" class="btn btn-primary">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

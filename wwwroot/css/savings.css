@@ -1,0 +1,112 @@
+/* -------------------------------------------------------------
+ * Aura Savings Goals Stylesheet (Savings.cshtml specific)
+ * ------------------------------------------------------------- */
+
+.savings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.savings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.goal-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  position: relative;
+}
+
+.goal-progress-percentage {
+  position: absolute;
+  top: 1.8rem;
+  right: 1.8rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent-color);
+}
+
+.goal-info h4 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+  padding-right: 2.5rem;
+}
+
+.goal-info .goal-date {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.goal-progress-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 0.5rem;
+}
+
+.goal-current-amount {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.goal-target-amount {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.goal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 40px;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.progress-bar-container {
+  height: 8px;
+  background: var(--input-border);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 10px;
+  width: 0%;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s ease;
+}
+
+.progress-green {
+  background: linear-gradient(90deg, #10b981, #34d399);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+  background: var(--input-bg);
+  color: var(--text-primary);
+}
+
+.btn-icon.delete-btn:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--color-expense);
+}

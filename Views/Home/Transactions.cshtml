@@ -1,0 +1,95 @@
+@{
+    ViewData["Title"] = "Transactions";
+    ViewData["Subtitle"] = "Search, filter, and track all your income and expenses.";
+}
+
+@section Head {
+    <link rel="stylesheet" href="~/css/transactions.css" asp-append-version="true" />
+}
+
+<div class="view-panel active">
+    <section class="card">
+        <!-- Filters Toolbar -->
+        <div class="filters-toolbar">
+            <div class="filter-group search-bar">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="filter-search" placeholder="Search description...">
+            </div>
+            
+            <div class="filter-group">
+                <label for="filter-type">Type</label>
+                <select id="filter-type">
+                    <option value="all">All Types</option>
+                    <option value="income">Income</option>
+                    <option value="expense">Expense</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="filter-category">Category</label>
+                <select id="filter-category">
+                    <option value="all">All Categories</option>
+                    <!-- Filled dynamically -->
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="filter-date-from">From</label>
+                <input type="date" id="filter-date-from">
+            </div>
+
+            <div class="filter-group">
+                <label for="filter-date-to">To</label>
+                <input type="date" id="filter-date-to">
+            </div>
+
+            <button id="reset-filters-btn" class="btn btn-secondary-outline" title="Reset all filters">
+                <i class="fa-solid fa-rotate-left"></i>
+            </button>
+        </div>
+
+        <!-- Transaction List Table -->
+        <div class="table-container">
+            <table class="transaction-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="transactions-tbody">
+                    <!-- Dynamically Rendered via AJAX -->
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--text-secondary);">Loading transactions...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <div class="pagination-info">
+                Showing <span id="paginated-start">0</span>-<span id="paginated-end">0</span> of <span id="paginated-total">0</span> transactions
+            </div>
+            <div class="pagination-buttons">
+                <button id="prev-page-btn" class="btn btn-nav"><i class="fa-solid fa-chevron-left"></i></button>
+                <span id="page-num">1</span>
+                <button id="next-page-btn" class="btn btn-nav"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <script src="~/js/transactions.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.AuraApp && typeof window.AuraApp.initTransactions === 'function') {
+                window.AuraApp.initTransactions();
+            }
+        });
+    </script>
+}

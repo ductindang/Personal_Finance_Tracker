@@ -1,0 +1,209 @@
+/* -------------------------------------------------------------
+ * Aura Transactions Stylesheet (Transactions.cshtml specific)
+ * ------------------------------------------------------------- */
+
+/* Shared table styling (duplicated here to keep view self-contained) */
+.table-container {
+  overflow-x: auto;
+  margin-top: 1rem;
+}
+
+.transaction-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.transaction-table th {
+  padding: 1rem 1.2rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.transaction-table td {
+  padding: 1.1rem 1.2rem;
+  font-size: 0.95rem;
+  border-bottom: 1px solid var(--glass-border);
+  transition: background-color 0.2s ease;
+}
+
+.transaction-table tr:last-child td {
+  border-bottom: none;
+}
+
+.transaction-table tr:hover td {
+  background-color: var(--table-row-hover);
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-income {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--color-income);
+}
+
+.badge-expense {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--color-expense);
+}
+
+.badge-category {
+  background: var(--accent-light);
+  color: var(--accent-color);
+}
+
+.amount-income {
+  color: var(--color-income);
+  font-weight: 600;
+}
+
+.amount-expense {
+  color: var(--color-expense);
+  font-weight: 600;
+}
+
+/* Actions Row list */
+.row-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+  background: var(--input-bg);
+  color: var(--text-primary);
+}
+
+.btn-icon.delete-btn:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--color-expense);
+}
+
+.btn-icon.edit-btn:hover {
+  background: var(--accent-light);
+  color: var(--accent-color);
+}
+
+/* Filters Toolbar */
+.filters-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex-grow: 1;
+}
+
+.filter-group label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.filter-group input,
+.filter-group select {
+  height: 42px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  padding: 0 0.8rem;
+  border-radius: 8px;
+  outline: none;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 2px var(--accent-light);
+}
+
+.search-bar {
+  position: relative;
+  flex-grow: 2;
+}
+
+.search-bar i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.search-bar input {
+  padding-left: 36px;
+}
+
+/* Pagination Control */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--glass-border);
+}
+
+.pagination-info {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.pagination-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+#page-num {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 640px) {
+  .filters-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+}

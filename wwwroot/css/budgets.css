@@ -1,0 +1,160 @@
+/* -------------------------------------------------------------
+ * Aura Budgets Stylesheet (Budgets.cshtml specific)
+ * ------------------------------------------------------------- */
+
+.budgets-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.month-selector-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.month-selector-wrapper label {
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.month-input {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px;
+  outline: none;
+}
+
+.budget-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.budget-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.budget-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.budget-card-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.budget-card-title h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.budget-card-title span {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.budget-amounts {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 0.5rem;
+}
+
+.budget-spent {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.budget-limit {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.15rem;
+}
+
+.progress-bar-container {
+  height: 8px;
+  background: var(--input-border);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: 10px;
+  width: 0%;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.4s ease;
+}
+
+.progress-green {
+  background: linear-gradient(90deg, #10b981, #34d399);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+.progress-orange {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+.progress-red {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+  animation: pulse-glow 1.5s infinite alternate;
+}
+
+@keyframes pulse-glow {
+  0% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+  }
+}
+
+.budget-warning-text {
+  font-size: 0.8rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.text-green { color: var(--color-income); }
+.text-orange { color: var(--color-warning); }
+.text-red { color: var(--color-expense); }
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+  background: var(--input-bg);
+  color: var(--text-primary);
+}
+
+.btn-icon.delete-btn:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--color-expense);
+}

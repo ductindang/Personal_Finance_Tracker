@@ -1,0 +1,282 @@
+@{
+    Layout = null;
+    var returnUrl = ViewData["ReturnUrl"] as string;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign in with Google - OAuth 2.0 Consent</title>
+    
+    <!-- Outfit Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom Site Styles -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+
+    <style>
+        .consent-page {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            background-color: var(--bg-primary);
+        }
+
+        .consent-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 var(--glass-shadow);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 480px;
+            padding: 40px;
+            z-index: 10;
+            animation: cardFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .google-branding {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .google-branding i {
+            font-size: 28px;
+            background: conic-gradient(from -45deg, #ea4335 110deg, #4285f4 90deg 180deg, #34a853 180deg 270deg, #fbbc05 270deg);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .google-branding span {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+        }
+
+        .app-link-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 10px 16px;
+            margin-bottom: 24px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .app-link-badge i {
+            color: var(--accent-color);
+        }
+
+        .consent-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .consent-subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .scopes-list {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--input-border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 28px;
+        }
+
+        .scopes-header {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .scope-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 13px;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .scope-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .scope-item i {
+            color: #10b981;
+            margin-top: 3px;
+        }
+
+        .scope-desc {
+            line-height: 1.4;
+        }
+
+        .consent-form .form-group {
+            margin-bottom: 18px;
+        }
+
+        .consent-form label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--input-border);
+            background: var(--input-bg);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--input-focus-border);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn-consent {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            font-family: var(--font-main);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn-consent-allow {
+            background: #4285f4;
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.25);
+        }
+
+        .btn-consent-allow:hover {
+            background: #357ae8;
+            box-shadow: 0 6px 16px rgba(66, 133, 244, 0.35);
+        }
+
+        .btn-consent-cancel {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--input-border);
+        }
+
+        .btn-consent-cancel:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.03);
+            border-color: var(--text-secondary);
+        }
+
+        .validation-summary-errors {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #fca5a5;
+        }
+    </style>
+</head>
+<body class="dark-theme">
+    <div class="bg-blur blob-1"></div>
+    <div class="bg-blur blob-2"></div>
+    <div class="bg-blur blob-3"></div>
+
+    <div class="consent-page">
+        <div class="consent-card">
+            <div class="google-branding">
+                <i class="fa-brands fa-google"></i>
+                <span>Google Accounts</span>
+            </div>
+
+            <div class="app-link-badge">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>Sign in to <strong>Aura Finance Tracker</strong></span>
+            </div>
+
+            <h1 class="consent-title">Simulated Google Sign-In</h1>
+            <p class="consent-subtitle">This screen simulates the official Google OAuth consent flow for development.</p>
+
+            <div class="scopes-list">
+                <div class="scopes-header">Permissions Requested</div>
+                <div class="scope-item">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <div class="scope-desc"><strong>Profile Info:</strong> View your name and profile picture URL.</div>
+                </div>
+                <div class="scope-item">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <div class="scope-desc"><strong>Email Address:</strong> View and retrieve your primary email address.</div>
+                </div>
+            </div>
+
+            <form asp-action="SimulatedGoogleLogin" asp-route-returnUrl="@returnUrl" method="post" class="consent-form">
+                <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+
+                <div class="form-group">
+                    <label for="name">Google Profile Name</label>
+                    <input type="text" id="name" name="name" class="input-field" value="John Doe" required placeholder="e.g. John Doe" />
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Google Email Address</label>
+                    <input type="email" id="email" name="email" class="input-field" value="john.doe@gmail.com" required placeholder="e.g. john.doe@gmail.com" />
+                </div>
+
+                <div class="form-actions">
+                    <a asp-action="Login" class="btn-consent btn-consent-cancel">Cancel</a>
+                    <button type="submit" class="btn-consent btn-consent-allow">Allow & Sync</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

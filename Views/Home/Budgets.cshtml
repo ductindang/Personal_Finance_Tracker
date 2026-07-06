@@ -1,0 +1,77 @@
+@{
+    ViewData["Title"] = "Budgets";
+    ViewData["Subtitle"] = "Set monthly spending limits for expense categories.";
+}
+
+@section Head {
+    <link rel="stylesheet" href="~/css/budgets.css" asp-append-version="true" />
+}
+
+<div class="view-panel active">
+    <div class="budgets-header">
+        <div class="month-selector-wrapper">
+            <label for="budget-month-select">Budget Month:</label>
+            <input type="month" id="budget-month-select" class="month-input">
+        </div>
+        <button id="set-budget-btn" class="btn btn-secondary">
+            <i class="fa-solid fa-circle-plus"></i> Set Category Budget
+        </button>
+    </div>
+
+    <!-- Budget Cards Grid -->
+    <div class="budget-grid" id="budgets-grid-container">
+        <!-- Dynamically Rendered via AJAX -->
+        <div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 3rem;">
+            Loading category budgets...
+        </div>
+    </div>
+</div>
+
+<!-- Budget Modal (Local to Budgets view) -->
+<div class="modal" id="budget-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Set Category Budget</h2>
+            <button class="modal-close" id="budget-modal-close-btn">&times;</button>
+        </div>
+        <form id="budget-form" class="modal-form">
+            <input type="hidden" id="budget-id">
+            
+            <div class="form-group">
+                <label for="budget-category">Category</label>
+                <select id="budget-category" required>
+                    <!-- Populated dynamically (only expense categories) -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="budget-limit">Monthly Limit</label>
+                <div class="input-prefix-wrapper">
+                    <span class="currency-prefix modal-currency-prefix">$</span>
+                    <input type="number" id="budget-limit" step="0.01" min="0.01" required placeholder="0.00">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="budget-month">Target Month</label>
+                <input type="month" id="budget-month" required>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" id="budget-cancel-btn" class="btn btn-secondary-outline">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Budget</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/budgets.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.AuraApp && typeof window.AuraApp.initBudgets === 'function') {
+                window.AuraApp.initBudgets();
+            }
+        });
+    </script>
+}

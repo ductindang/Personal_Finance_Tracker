@@ -1,0 +1,97 @@
+@{
+    ViewData["Title"] = "Dashboard";
+    ViewData["Subtitle"] = "Welcome back! Check your financial summary.";
+}
+
+@section Head {
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+}
+
+<div class="view-panel active">
+    <!-- Summary Cards Grid -->
+    <section class="summary-cards">
+        <div class="card card-balance">
+            <div class="card-icon">
+                <i class="fa-solid fa-scale-balanced"></i>
+            </div>
+            <div class="card-info">
+                <h3>Net Balance</h3>
+                <p class="amount" id="dash-balance">$0.00</p>
+            </div>
+        </div>
+        
+        <div class="card card-income">
+            <div class="card-icon">
+                <i class="fa-solid fa-arrow-trend-up"></i>
+            </div>
+            <div class="card-info">
+                <h3>Total Income</h3>
+                <p class="amount" id="dash-income">$0.00</p>
+            </div>
+        </div>
+        
+        <div class="card card-expense">
+            <div class="card-icon">
+                <i class="fa-solid fa-arrow-trend-down"></i>
+            </div>
+            <div class="card-info">
+                <h3>Total Expense</h3>
+                <p class="amount" id="dash-expense">$0.00</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Charts Section -->
+    <section class="charts-section">
+        <div class="card chart-container-card">
+            <h3>Monthly Cash Flow</h3>
+            <div class="chart-wrapper">
+                <canvas id="cashflowChart"></canvas>
+            </div>
+        </div>
+        <div class="card chart-container-card">
+            <h3>Expenses by Category</h3>
+            <div class="chart-wrapper">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent Transactions -->
+    <section class="recent-transactions-section card">
+        <div class="section-header">
+            <h3>Recent Transactions</h3>
+            <a asp-controller="Home" asp-action="Transactions" class="btn-text">View All <i class="fa-solid fa-chevron-right"></i></a>
+        </div>
+        <div class="table-container">
+            <table class="transaction-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="recent-transactions-tbody">
+                    <!-- Dynamically Rendered via AJAX -->
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: var(--text-secondary);">Loading recent transactions...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <script src="~/js/dashboard.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.AuraApp && typeof window.AuraApp.initDashboard === 'function') {
+                window.AuraApp.initDashboard();
+            }
+        });
+    </script>
+}

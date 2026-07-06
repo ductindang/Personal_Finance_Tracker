@@ -1,0 +1,146 @@
+@model PersonalFinanceTracker.Models.LoginViewModel
+@{
+    Layout = null;
+    var returnUrl = ViewData["ReturnUrl"] as string;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Aura Finance Tracker</title>
+    
+    <!-- Outfit Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom Site Styles -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <!-- Page Specific Styles -->
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+</head>
+<body class="dark-theme login-body">
+    <!-- Dynamic Gradient Background Blobs -->
+    <div class="bg-blur blob-1"></div>
+    <div class="bg-blur blob-2"></div>
+    <div class="bg-blur blob-3"></div>
+
+    <!-- Floating 3D background shapes from Figma -->
+    <div class="figma-shapes-container">
+        <!-- Large glowing backdrop panel right behind the card -->
+        <img src="~/images/figma_shape_101_16131.png" class="figma-shape shape-backdrop" alt="" />
+        
+        <!-- Top-left wavy double loop -->
+        <img src="~/images/figma_shape_101_12080.png" class="figma-shape shape-top-left-wave" alt="" />
+        
+        <!-- Top torus ring -->
+        <img src="~/images/figma_shape_101_10074.png" class="figma-shape shape-top-ring" alt="" />
+        
+        <!-- Right spiral coil passing behind card -->
+        <img src="~/images/figma_shape_101_13083.png" class="figma-shape shape-right-spiral" alt="" />
+        
+        <!-- Bottom-left large curved torus pipe -->
+        <img src="~/images/figma_shape_101_14125.png" class="figma-shape shape-bottom-left-torus" alt="" />
+        
+        <!-- Bottom-right wavy tube -->
+        <img src="~/images/figma_shape_101_15128.png" class="figma-shape shape-bottom-right-wave" alt="" />
+
+        <!-- Extra shapes for depth -->
+        <img src="~/images/figma_shape_101_11077.png" class="figma-shape shape-extra-1" alt="" />
+        <img src="~/images/figma_shape_101_17134.png" class="figma-shape shape-extra-2" alt="" />
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <div class="auth-page">
+        <!-- Theme Select Dropdown -->
+        <div class="theme-select-container">
+            <i class="fa-solid fa-circle-half-stroke"></i>
+            <select id="theme-select" aria-label="Select theme">
+                <option value="dark">Dark Theme</option>
+                <option value="light">Light Theme</option>
+            </select>
+        </div>
+
+        <div class="auth-card">
+            <!-- Header layout matching figma exactly -->
+            <div class="auth-header">
+                <div class="auth-logo-text">Your logo</div>
+                <h1 class="auth-title">Login</h1>
+            </div>
+
+            <!-- Server-side errors passed to JS for toast notification -->
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div id="server-error-data" data-message="@TempData["ErrorMessage"]" style="display:none;"></div>
+            }
+
+            <!-- Server-side validation summary elements parsed by JS -->
+            <div id="validation-summary-container" style="display:none;">
+                <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+            </div>
+
+            <form asp-action="Login" asp-route-returnUrl="@returnUrl" method="post" class="auth-form">
+                <!-- ASP.NET model validation summary placeholder (styled for fallback/accessibility) -->
+                <div asp-validation-summary="ModelOnly" class="validation-summary-errors" style="display:none;"></div>
+
+                <div class="form-group">
+                    <label asp-for="UsernameOrEmail">Email</label>
+                    <div class="input-wrapper">
+                        <input asp-for="UsernameOrEmail" placeholder="username@gmail.com" autocomplete="username" />
+                    </div>
+                    <span asp-validation-for="UsernameOrEmail"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Password">Password</label>
+                    <div class="input-wrapper">
+                        <input asp-for="Password" type="password" placeholder="Password" autocomplete="current-password" />
+                        <i class="fa-solid fa-eye-slash toggle-password" id="toggle-password-btn" title="Toggle password visibility"></i>
+                    </div>
+                    <span asp-validation-for="Password"></span>
+                    <div class="forgot-link-wrapper">
+                        <a asp-action="ForgotPassword" class="forgot-link">Forgot Password?</a>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">Sign in</button>
+            </form>
+
+            <div class="divider">or continue with</div>
+
+            <!-- Social Providers Row Layout (matches Figma) -->
+            <div class="social-login-row">
+                <a asp-action="ExternalLogin" asp-route-provider="Google" asp-route-returnUrl="@returnUrl" class="social-icon-btn google-btn" title="Sign in with Google">
+                    <i class="fa-brands fa-google google-icon"></i>
+                </a>
+                <a href="#" class="social-icon-btn placeholder-btn github-btn" data-provider="GitHub" title="Sign in with GitHub">
+                    <i class="fa-brands fa-github github-icon"></i>
+                </a>
+                <a href="#" class="social-icon-btn placeholder-btn facebook-btn" data-provider="Facebook" title="Sign in with Facebook">
+                    <i class="fa-brands fa-facebook facebook-icon"></i>
+                </a>
+            </div>
+
+            <!-- Bottom Registration Link -->
+            <div class="register-link-wrapper">
+                <span>Don't have an account yet? </span>
+                <a href="#" class="register-link">Register for free</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+    <!-- Page Specific Script -->
+    <script src="~/js/login.js" asp-append-version="true"></script>
+</body>
+</html>

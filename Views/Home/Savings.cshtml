@@ -1,0 +1,111 @@
+@{
+    ViewData["Title"] = "Savings Goals";
+    ViewData["Subtitle"] = "Create savings targets and track your accumulation progress.";
+}
+
+@section Head {
+    <link rel="stylesheet" href="~/css/savings.css" asp-append-version="true" />
+}
+
+<div class="view-panel active">
+    <div class="savings-header">
+        <h2>Savings Tracker</h2>
+        <button id="add-goal-btn" class="btn btn-secondary">
+            <i class="fa-solid fa-circle-plus"></i> Create Savings Goal
+        </button>
+    </div>
+
+    <!-- Goals Card Grid -->
+    <div class="savings-grid" id="savings-grid-container">
+        <!-- Dynamically Rendered via AJAX -->
+        <div style="grid-column: 1/-1; text-align: center; color: var(--text-secondary); padding: 3rem;">
+            Loading savings goals...
+        </div>
+    </div>
+</div>
+
+<!-- Savings Goal Create Modal (Local to Savings view) -->
+<div class="modal" id="goal-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Create Savings Goal</h2>
+            <button class="modal-close" id="goal-modal-close-btn">&times;</button>
+        </div>
+        <form id="goal-form" class="modal-form">
+            <div class="form-group">
+                <label for="goal-title">Goal Name</label>
+                <input type="text" id="goal-title" required placeholder="e.g., Vacation fund, Macbook Pro">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="goal-target">Target Amount</label>
+                    <div class="input-prefix-wrapper">
+                        <span class="currency-prefix modal-currency-prefix">$</span>
+                        <input type="number" id="goal-target" step="0.01" min="0.01" required placeholder="0.00">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="goal-date">Target Date</label>
+                    <input type="date" id="goal-date" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="goal-current">Initial Savings (Optional)</label>
+                <div class="input-prefix-wrapper">
+                    <span class="currency-prefix modal-currency-prefix">$</span>
+                    <input type="number" id="goal-current" step="0.01" min="0" value="0" placeholder="0.00">
+                </div>
+                <p class="form-help-text">This amount will count towards your goal and will be deducted from your spendable balance.</p>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" id="goal-cancel-btn" class="btn btn-secondary-outline">Cancel</button>
+                <button type="submit" class="btn btn-primary">Create Goal</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Savings Goal Deposit/Withdraw Modal (Local to Savings view) -->
+<div class="modal" id="goal-fund-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="goal-fund-title">Manage Goal Funds</h2>
+            <button class="modal-close" id="goal-fund-modal-close-btn">&times;</button>
+        </div>
+        <form id="goal-fund-form" class="modal-form">
+            <input type="hidden" id="goal-fund-id">
+            <input type="hidden" id="goal-fund-type" value="deposit"> <!-- 'deposit' or 'withdraw' -->
+            
+            <div class="form-group">
+                <p id="goal-fund-subtitle">Add savings to your goal.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="goal-fund-amount">Amount</label>
+                <div class="input-prefix-wrapper">
+                    <span class="currency-prefix modal-currency-prefix">$</span>
+                    <input type="number" id="goal-fund-amount" step="0.01" min="0.01" required placeholder="0.00">
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" id="goal-fund-cancel-btn" class="btn btn-secondary-outline">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="goal-fund-submit-btn">Transfer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/savings.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.AuraApp && typeof window.AuraApp.initSavings === 'function') {
+                window.AuraApp.initSavings();
+            }
+        });
+    </script>
+}

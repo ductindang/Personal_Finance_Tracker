@@ -1,0 +1,106 @@
+@{
+    ViewData["Title"] = "Settings";
+    ViewData["Subtitle"] = "Manage application configurations and data backups.";
+}
+
+@section Head {
+    <link rel="stylesheet" href="~/css/settings.css" asp-append-version="true" />
+}
+
+<div class="view-panel active">
+    <div class="settings-grid">
+        <section class="card settings-card">
+            <h3><i class="fa-solid fa-gears"></i> General Preferences</h3>
+            <div class="setting-item">
+                <div>
+                    <h4>Base Currency</h4>
+                    <p>Set the currency symbol used across the app.</p>
+                </div>
+                <select id="setting-currency" class="select-input">
+                    <option value="$">US Dollar ($)</option>
+                    <option value="€">Euro (€)</option>
+                    <option value="£">British Pound (£)</option>
+                    <option value="¥">Japanese Yen / Yuan (¥)</option>
+                    <option value="₫">Vietnamese Dong (₫)</option>
+                </select>
+            </div>
+        </section>
+
+        <section class="card settings-card">
+            <h3><i class="fa-solid fa-tags"></i> Category Management</h3>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: -10px; margin-bottom: 5px;">Manage transaction categories for your income and expenses.</p>
+            
+            <div class="category-manager-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 0.5rem;">
+                <div>
+                    <h4 style="margin-bottom: 0.8rem; font-size: 0.95rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.4rem;">Income Categories</h4>
+                    <div id="settings-income-categories" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 250px; overflow-y: auto; padding-right: 0.5rem;">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+                <div>
+                    <h4 style="margin-bottom: 0.8rem; font-size: 0.95rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.4rem;">Expense Categories</h4>
+                    <div id="settings-expense-categories" style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 250px; overflow-y: auto; padding-right: 0.5rem;">
+                        <!-- Rendered dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <div style="border-top: 1px solid var(--glass-border); padding-top: 1.2rem; margin-top: 1rem;">
+                <h4 style="font-size: 0.95rem; margin-bottom: 0.8rem;">Add New Category</h4>
+                <form id="add-category-form" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <input type="text" id="new-cat-name" required placeholder="e.g., Freelance, Coffee" style="flex-grow: 2; height: 38px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-primary); border-radius: 8px; padding: 0 0.8rem; outline: none; font-family: var(--font-main);">
+                    <select id="new-cat-type" style="height: 38px; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-primary); border-radius: 8px; padding: 0 0.8rem; outline: none; font-family: var(--font-main);">
+                        <option value="expense">Expense</option>
+                        <option value="income">Income</option>
+                    </select>
+                    <button type="submit" class="btn btn-secondary" style="height: 38px; padding: 0 1.2rem;"><i class="fa-solid fa-plus"></i> Add</button>
+                </form>
+            </div>
+        </section>
+
+        <section class="card settings-card">
+            <h3><i class="fa-solid fa-database"></i> Backup & Storage</h3>
+            <div class="setting-item">
+                <div>
+                    <h4>Export Financial Data</h4>
+                    <p>Download a file of all transactions, budgets, and savings goals in JSON format.</p>
+                </div>
+                <button id="export-data-btn" class="btn btn-primary-outline">
+                    <i class="fa-solid fa-file-export"></i> Export Data
+                </button>
+            </div>
+
+            <div class="setting-item">
+                <div>
+                    <h4>Import Financial Data</h4>
+                    <p>Restore your data from a previously exported JSON backup file.</p>
+                </div>
+                <label for="import-file-input" class="btn btn-secondary-outline import-label">
+                    <i class="fa-solid fa-file-import"></i> Choose Backup File
+                    <input type="file" id="import-file-input" accept=".json" style="display: none;">
+                </label>
+            </div>
+
+            <div class="setting-item warning-zone">
+                <div>
+                    <h4 class="text-danger">Purge Application Data</h4>
+                    <p>This action permanently clears all database transactions, budgets, and goals. This cannot be undone.</p>
+                </div>
+                <button id="purge-data-btn" class="btn btn-danger">
+                    <i class="fa-solid fa-trash-can"></i> Purge All Data
+                </button>
+            </div>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/settings.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.AuraApp && typeof window.AuraApp.initSettings === 'function') {
+                window.AuraApp.initSettings();
+            }
+        });
+    </script>
+}
