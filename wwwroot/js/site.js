@@ -168,11 +168,14 @@
             titleEl.textContent = title;
             msgEl.textContent = message;
 
-            // Show or hide cancel button
+            // Show or hide cancel button and adjust layout
+            const actionsContainer = okBtn.closest('.alert-actions');
             if (onCancel) {
                 cancelBtn.style.display = 'block';
+                if (actionsContainer) actionsContainer.classList.add('alert-actions--confirm');
             } else {
                 cancelBtn.style.display = 'none';
+                if (actionsContainer) actionsContainer.classList.remove('alert-actions--confirm');
             }
 
             // Cleanup previous event listeners by cloning the buttons
@@ -197,6 +200,10 @@
             });
 
             this.showModal('alert-modal');
+
+            // Move focus to OK button so Enter dismisses the alert
+            // instead of re-triggering the hidden form's submit button
+            newOk.focus();
         },
 
         // --- Modal Utility Actions ---
@@ -252,6 +259,11 @@
             if (transForm) {
                 transForm.addEventListener('submit', async (event) => {
                     event.preventDefault();
+                    // Prevent duplicate submissions when alert modal is visible
+                    const alertModal = document.getElementById('alert-modal');
+                    if (alertModal && alertModal.classList.contains('active')) {
+                        return;
+                    }
                     await this.saveTransaction();
                 });
             }

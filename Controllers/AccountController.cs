@@ -2,25 +2,21 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using PersonalFinanceTracker.Data;
 using PersonalFinanceTracker.Models;
+using PersonalFinanceTracker.Services.Interfaces;
 
 namespace PersonalFinanceTracker.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly FinanceDbContext _context;
+        private readonly IAccountService _accountService;
         private readonly IConfiguration _configuration;
-        private readonly PasswordHasher<User> _passwordHasher;
 
-        public AccountController(FinanceDbContext context, IConfiguration configuration)
+        public AccountController(IAccountService accountService, IConfiguration configuration)
         {
-            _context = context;
+            _accountService = accountService;
             _configuration = configuration;
-            _passwordHasher = new PasswordHasher<User>();
         }
 
         [HttpGet]
@@ -46,18 +42,8 @@ namespace PersonalFinanceTracker.Controllers
                 return View(model);
             }
 
-            var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Username.ToLower() == model.UsernameOrEmail.ToLower() 
-                                       || u.Email.ToLower() == model.UsernameOrEmail.ToLower());
-
-            if (user == null || string.IsNullOrEmpty(user.PasswordHash))
-            {
-                ModelState.AddModelError(string.Empty, "Invalid login credentials.");
-                return View(model);
-            }
-
-            var verificationResult = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, model.Password);
-            if (verificationResult == PasswordVerificationResult.Failed)
+            var user = await _accountService.ValidateLoginAsync(model.UsernameOrEmail, model.Password);
+            if (user == null)
             {
                 ModelState.AddModelError(string.Empty, "Invalid login credentials.");
                 return View(model);
@@ -71,6 +57,48 @@ namespace PersonalFinanceTracker.Controllers
             }
 
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public IActionResult Register()
+        {
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var (success, errorMessage) = await _accountService.RegisterAsync(model);
+            if (!success)
+            {
+                if (errorMessage != null && errorMessage.Contains("Email"))
+                {
+                    ModelState.AddModelError("Email", errorMessage);
+                }
+                else if (errorMessage != null && errorMessage.Contains("Username"))
+                {
+                    ModelState.AddModelError("Username", errorMessage);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, errorMessage ?? "Registration failed.");
+                }
+                return View(model);
+            }
+
+            TempData["SuccessMessage"] = "Registration successful! Please log in.";
+            return RedirectToAction(nameof(Login));
         }
 
         [HttpGet]
@@ -109,7 +137,7 @@ namespace PersonalFinanceTracker.Controllers
                 return RedirectToAction(nameof(Login));
             }
 
-            var user = await SyncGoogleUserAsync(email, name, picture);
+            var user = await _accountService.SyncGoogleUserAsync(email, name, picture);
             await SignInUserAsync(user);
             await HttpContext.SignOutAsync("ExternalCookie");
 
@@ -140,7 +168,7 @@ namespace PersonalFinanceTracker.Controllers
 
             // Sync user details locally (sync data to my application)
             var mockAvatar = "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/712020:e878da9b-63da-4d9d-895d-92478f695579/152fb82e-dd1a-44a4-bdca-57ab9feb5d58/48";
-            var user = await SyncGoogleUserAsync(email, name ?? email.Split('@')[0], mockAvatar);
+            var user = await _accountService.SyncGoogleUserAsync(email, name ?? email.Split('@')[0], mockAvatar);
             
             await SignInUserAsync(user);
 
@@ -167,7 +195,7 @@ namespace PersonalFinanceTracker.Controllers
                 return View(model);
             }
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == model.Email.ToLower());
+            await _accountService.ForgotPasswordAsync(model.Email);
             
             // For security, do not reveal if the email doesn't exist, but simulate success either way
             ViewBag.SuccessMessage = $"A password reset link has been sent to {model.Email} (Simulated). Please check your inbox.";
@@ -181,32 +209,6 @@ namespace PersonalFinanceTracker.Controllers
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction(nameof(Login));
-        }
-
-        private async Task<User> SyncGoogleUserAsync(string email, string? name, string? pictureUrl)
-        {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
-            if (user == null)
-            {
-                user = new User
-                {
-                    Username = email.Split('@')[0],
-                    Email = email,
-                    FullName = name,
-                    ProfilePictureUrl = pictureUrl
-                };
-                _context.Users.Add(user);
-            }
-            else
-            {
-                // Sync latest profile details from Google
-                user.FullName = name ?? user.FullName;
-                user.ProfilePictureUrl = pictureUrl ?? user.ProfilePictureUrl;
-                _context.Users.Update(user);
-            }
-
-            await _context.SaveChangesAsync();
-            return user;
         }
 
         private async Task SignInUserAsync(User user)

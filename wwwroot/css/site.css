@@ -485,6 +485,17 @@ body {
   box-shadow: 0 0 0 3px var(--accent-light);
 }
 
+select option {
+  background-color: #12141e;
+  color: #f3f4f6;
+}
+
+body.light-theme select option {
+  background-color: #ffffff;
+  color: #1f2937;
+}
+
+
 .modal-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -596,6 +607,11 @@ body {
 
 .alert-actions {
   width: 100%;
+  grid-template-columns: 1fr;
+}
+
+.alert-actions--confirm {
+  grid-template-columns: 1fr 1fr;
 }
 
 /* Alert Type Customization */

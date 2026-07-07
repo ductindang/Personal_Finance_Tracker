@@ -1,7 +1,6 @@
-@model PersonalFinanceTracker.Models.LoginViewModel
+@model PersonalFinanceTracker.Models.RegisterViewModel
 @{
     Layout = null;
-    var returnUrl = ViewData["ReturnUrl"] as string;
 }
 
 <!DOCTYPE html>
@@ -9,7 +8,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login - Aura Finance Tracker</title>
+    <title>Register - Aura Finance Tracker</title>
     
     <!-- Outfit Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,7 +21,7 @@
     <!-- Custom Site Styles -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <!-- Page Specific Styles -->
-    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/register.css" asp-append-version="true" />
 </head>
 <body class="dark-theme login-body">
     <!-- Dynamic Gradient Background Blobs -->
@@ -72,7 +71,7 @@
             <!-- Header layout matching figma exactly -->
             <div class="auth-header">
                 <div class="auth-logo-text">Your logo</div>
-                <h1 class="auth-title">Login</h1>
+                <h1 class="auth-title">Register</h1>
             </div>
 
             <!-- Server-side errors passed to JS for toast notification -->
@@ -80,48 +79,72 @@
             {
                 <div id="server-error-data" data-message="@TempData["ErrorMessage"]" style="display:none;"></div>
             }
-            @if (TempData["SuccessMessage"] != null)
-            {
-                <div id="server-success-data" data-message="@TempData["SuccessMessage"]" style="display:none;"></div>
-            }
 
             <!-- Server-side validation summary elements parsed by JS -->
             <div id="validation-summary-container" style="display:none;">
                 <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
             </div>
 
-            <form asp-action="Login" asp-route-returnUrl="@returnUrl" method="post" class="auth-form">
-                <!-- ASP.NET model validation summary placeholder (styled for fallback/accessibility) -->
+            <form asp-action="Register" method="post" class="auth-form" id="register-form">
+                <!-- ASP.NET model validation summary placeholder -->
                 <div asp-validation-summary="ModelOnly" class="validation-summary-errors" style="display:none;"></div>
 
                 <div class="form-group">
-                    <label asp-for="UsernameOrEmail">Email</label>
+                    <label asp-for="FullName">Full Name</label>
                     <div class="input-wrapper">
-                        <input asp-for="UsernameOrEmail" placeholder="username@gmail.com" autocomplete="username" />
+                        <input asp-for="FullName" placeholder="John Doe" autocomplete="name" />
                     </div>
-                    <span asp-validation-for="UsernameOrEmail"></span>
+                    <span asp-validation-for="FullName"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Username">Username</label>
+                    <div class="input-wrapper">
+                        <input asp-for="Username" placeholder="johndoe" autocomplete="username" />
+                    </div>
+                    <span asp-validation-for="Username"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Email">Email</label>
+                    <div class="input-wrapper">
+                        <input asp-for="Email" placeholder="username@gmail.com" autocomplete="email" />
+                    </div>
+                    <span asp-validation-for="Email"></span>
                 </div>
 
                 <div class="form-group">
                     <label asp-for="Password">Password</label>
                     <div class="input-wrapper">
-                        <input asp-for="Password" type="password" placeholder="Password" autocomplete="current-password" />
+                        <input asp-for="Password" type="password" placeholder="••••••••" autocomplete="new-password" />
                         <i class="fa-solid fa-eye-slash toggle-password" id="toggle-password-btn" title="Toggle password visibility"></i>
                     </div>
                     <span asp-validation-for="Password"></span>
-                    <div class="forgot-link-wrapper">
-                        <a asp-action="ForgotPassword" class="forgot-link">Forgot Password?</a>
+                    
+                    <!-- Password strength visualizer -->
+                    <div class="password-strength-container">
+                        <div class="password-strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+                        <span class="strength-text" id="strength-text">Password Strength</span>
                     </div>
                 </div>
 
-                <button type="submit" class="submit-btn">Sign in</button>
+                <div class="form-group">
+                    <label asp-for="ConfirmPassword">Confirm Password</label>
+                    <div class="input-wrapper">
+                        <input asp-for="ConfirmPassword" type="password" placeholder="••••••••" autocomplete="new-password" />
+                        <i class="fa-solid fa-eye-slash toggle-password" id="toggle-confirm-password-btn" title="Toggle password visibility"></i>
+                    </div>
+                    <span asp-validation-for="ConfirmPassword"></span>
+                </div>
+
+                <button type="submit" class="submit-btn">Sign up</button>
             </form>
 
             <div class="divider">or continue with</div>
 
             <!-- Social Providers Row Layout (matches Figma) -->
             <div class="social-login-row">
-                <a asp-action="ExternalLogin" asp-route-provider="Google" asp-route-returnUrl="@returnUrl" class="social-icon-btn google-btn" title="Sign in with Google">
+                <a asp-action="ExternalLogin" asp-route-provider="Google" class="social-icon-btn google-btn" title="Sign in with Google">
                     <i class="fa-brands fa-google google-icon"></i>
                 </a>
                 <a href="#" class="social-icon-btn placeholder-btn github-btn" data-provider="GitHub" title="Sign in with GitHub">
@@ -132,10 +155,10 @@
                 </a>
             </div>
 
-            <!-- Bottom Registration Link -->
+            <!-- Bottom Login Link -->
             <div class="register-link-wrapper">
-                <span>Don't have an account yet? </span>
-                <a asp-action="Register" asp-controller="Account" class="register-link">Register for free</a>
+                <span>Already have an account? </span>
+                <a asp-action="Login" asp-controller="Account" class="register-link">Sign in</a>
             </div>
         </div>
     </div>
@@ -145,6 +168,6 @@
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
     <!-- Page Specific Script -->
-    <script src="~/js/login.js" asp-append-version="true"></script>
+    <script src="~/js/register.js" asp-append-version="true"></script>
 </body>
 </html>
