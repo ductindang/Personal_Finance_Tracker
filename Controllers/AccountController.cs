@@ -74,6 +74,56 @@ namespace PersonalFinanceTracker.Controllers
         }
 
         [HttpGet]
+        public IActionResult Register()
+        {
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var emailExists = await _context.Users.AnyAsync(u => u.Email.ToLower() == model.Email.ToLower());
+            if (emailExists)
+            {
+                ModelState.AddModelError("Email", "Email address is already registered.");
+                return View(model);
+            }
+
+            var usernameExists = await _context.Users.AnyAsync(u => u.Username.ToLower() == model.Username.ToLower());
+            if (usernameExists)
+            {
+                ModelState.AddModelError("Username", "Username is already taken.");
+                return View(model);
+            }
+
+            var user = new User
+            {
+                Username = model.Username,
+                Email = model.Email,
+                FullName = model.FullName
+            };
+
+            user.PasswordHash = _passwordHasher.HashPassword(user, model.Password);
+
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Registration successful! Please log in.";
+            return RedirectToAction(nameof(Login));
+        }
+
+        [HttpGet]
         public IActionResult ExternalLogin(string provider = "Google", string? returnUrl = null)
         {
             var googleClientId = _configuration["Authentication:Google:ClientId"];

@@ -1,20 +1,24 @@
 /* -------------------------------------------------------------
- * Aura Style System - Login Page Specific JavaScript Module
+ * Aura Style System - Register Page Specific JavaScript Module
  * Encapsulated IIFE pattern to prevent global namespace pollution
  * ------------------------------------------------------------- */
 
-const LoginPage = (() => {
+const RegisterPage = (() => {
     // DOM selectors object
     const DOM = {
         themeSelect: '#theme-select',
         passwordField: '#Password',
+        confirmPasswordField: '#ConfirmPassword',
         togglePasswordBtn: '#toggle-password-btn',
+        toggleConfirmPasswordBtn: '#toggle-confirm-password-btn',
+        strengthFill: '#strength-fill',
+        strengthText: '#strength-text',
         authForm: '.auth-form',
         toastContainer: '#toast-container',
         placeholderBtns: '.placeholder-btn'
     };
 
-    // Initialize layout theme dropdown on login page
+    // Initialize layout theme dropdown
     const initTheme = () => {
         const themeSelect = document.querySelector(DOM.themeSelect);
         const currentTheme = localStorage.getItem('aura_theme') || 'dark';
@@ -44,31 +48,103 @@ const LoginPage = (() => {
 
     // Show or hide password characters
     const initPasswordToggle = () => {
-        const toggleBtn = document.querySelector(DOM.togglePasswordBtn);
-        const passwordField = document.querySelector(DOM.passwordField);
-        if (toggleBtn && passwordField) {
-            toggleBtn.addEventListener('click', () => {
-                const isPassword = passwordField.getAttribute('type') === 'password';
-                
-                if (isPassword) {
-                    passwordField.setAttribute('type', 'text');
-                    toggleBtn.classList.remove('fa-eye-slash');
-                    toggleBtn.classList.add('fa-eye');
-                } else {
-                    passwordField.setAttribute('type', 'password');
-                    toggleBtn.classList.remove('fa-eye');
-                    toggleBtn.classList.add('fa-eye-slash');
-                }
-            });
-        }
+        const setupToggle = (btnId, inputId) => {
+            const toggleBtn = document.querySelector(btnId);
+            const inputField = document.querySelector(inputId);
+            if (toggleBtn && inputField) {
+                toggleBtn.addEventListener('click', () => {
+                    const isPassword = inputField.getAttribute('type') === 'password';
+                    
+                    if (isPassword) {
+                        inputField.setAttribute('type', 'text');
+                        toggleBtn.classList.remove('fa-eye-slash');
+                        toggleBtn.classList.add('fa-eye');
+                    } else {
+                        inputField.setAttribute('type', 'password');
+                        toggleBtn.classList.remove('fa-eye');
+                        toggleBtn.classList.add('fa-eye-slash');
+                    }
+                });
+            }
+        };
+
+        setupToggle(DOM.togglePasswordBtn, DOM.passwordField);
+        setupToggle(DOM.toggleConfirmPasswordBtn, DOM.confirmPasswordField);
     };
 
-    // Build and display toaster messages (e.g. alerts or errors)
+    // Password strength verification
+    const initPasswordStrength = () => {
+        const passwordInput = document.querySelector(DOM.passwordField);
+        const strengthFill = document.querySelector(DOM.strengthFill);
+        const strengthText = document.querySelector(DOM.strengthText);
+
+        if (!passwordInput || !strengthFill || !strengthText) return;
+
+        passwordInput.addEventListener('input', () => {
+            const val = passwordInput.value;
+            let score = 0;
+
+            if (!val) {
+                strengthFill.style.width = '0%';
+                strengthFill.style.backgroundColor = 'transparent';
+                strengthText.textContent = 'Password Strength';
+                return;
+            }
+
+            // Length rule
+            if (val.length >= 8) score++;
+            // Lower case rule
+            if (/[a-z]/.test(val)) score++;
+            // Upper case rule
+            if (/[A-Z]/.test(val)) score++;
+            // Number rule
+            if (/\d/.test(val)) score++;
+            // Special character rule
+            if (/[\W_]/.test(val)) score++;
+
+            let pct = 0;
+            let color = '';
+            let text = '';
+
+            switch (score) {
+                case 1:
+                case 2:
+                    pct = 25;
+                    color = '#ef4444'; // Red
+                    text = 'Weak';
+                    break;
+                case 3:
+                    pct = 50;
+                    color = '#f59e0b'; // Amber
+                    text = 'Fair';
+                    break;
+                case 4:
+                    pct = 75;
+                    color = '#3b82f6'; // Blue
+                    text = 'Good';
+                    break;
+                case 5:
+                    pct = 100;
+                    color = '#10b981'; // Green
+                    text = 'Strong & Secure';
+                    break;
+                default:
+                    pct = 0;
+                    color = 'transparent';
+                    text = 'Too short';
+            }
+
+            strengthFill.style.width = `${pct}%`;
+            strengthFill.style.backgroundColor = color;
+            strengthText.textContent = `Strength: ${text}`;
+            strengthText.style.color = color;
+        });
+    };
+
+    // Build and display toaster messages
     const showToast = (title, message, toastType = 'info') => {
         const container = document.querySelector(DOM.toastContainer);
-        if (!container) {
-            return;
-        }
+        if (!container) return;
 
         const toast = document.createElement('div');
         toast.className = `toast toast--${toastType}`;
@@ -93,7 +169,7 @@ const LoginPage = (() => {
 
         container.appendChild(toast);
 
-        // Delay 10ms to allow browser to trigger CSS entrance animation
+        // Transition animation
         setTimeout(() => {
             toast.classList.add('show');
         }, 10);
@@ -106,7 +182,7 @@ const LoginPage = (() => {
             });
         }
 
-        // Auto close toast after 5 seconds
+        // Auto close toast
         setTimeout(() => {
             if (toast.parentNode) {
                 removeToast(toast);
@@ -114,7 +190,6 @@ const LoginPage = (() => {
         }, 5000);
     };
 
-    // Clear toast with animation
     const removeToast = (toast) => {
         toast.classList.remove('show');
         toast.addEventListener('transitionend', () => {
@@ -126,18 +201,11 @@ const LoginPage = (() => {
 
     // Check for validation errors or login issues returned by server
     const initErrorHandling = () => {
-        // 1. Read TempData Message if populated
         const serverErrorData = document.querySelector('#server-error-data');
         if (serverErrorData && serverErrorData.dataset.message) {
-            showToast("Login Failure", serverErrorData.dataset.message, "error");
+            showToast("Registration Failure", serverErrorData.dataset.message, "error");
         }
 
-        const serverSuccessData = document.querySelector('#server-success-data');
-        if (serverSuccessData && serverSuccessData.dataset.message) {
-            showToast("Success", serverSuccessData.dataset.message, "success");
-        }
-
-        // 2. Read ASP.NET Core Validation Summary errors
         const summaryContainer = document.querySelector('#validation-summary-container');
         if (summaryContainer) {
             const errors = summaryContainer.querySelectorAll('li');
@@ -151,7 +219,7 @@ const LoginPage = (() => {
         }
     };
 
-    // Integrate with jQuery unobtrusive form validation to validate inputs dynamically
+    // Integrate with jQuery unobtrusive form validation
     const initFormSubmit = () => {
         const form = document.querySelector(DOM.authForm);
         if (form) {
@@ -160,7 +228,6 @@ const LoginPage = (() => {
             // Configure jQuery validator behavior
             const validator = jqForm.data('validator');
             if (validator) {
-                // Validate input when user clicks away from a field
                 validator.settings.onfocusout = function (element) {
                     const isCheckable = this.checkable(element);
                     const isAlreadySubmitted = element.name in this.submitted;
@@ -171,7 +238,6 @@ const LoginPage = (() => {
                     }
                 };
 
-                // Remove error warning immediately when correcting input
                 validator.settings.onkeyup = function (element) {
                     if (element.name in this.submitted) {
                         this.element(element);
@@ -179,7 +245,6 @@ const LoginPage = (() => {
                 };
             }
 
-            // Click submit button handler
             const submitBtn = form.querySelector('button[type="submit"]');
             if (submitBtn) {
                 submitBtn.addEventListener('click', () => {
@@ -198,7 +263,6 @@ const LoginPage = (() => {
         }
     };
 
-    // Temporary placeholder message for unsupported login options
     const initSocialPlaceholders = () => {
         const btns = document.querySelectorAll(DOM.placeholderBtns);
         for (let i = 0; i < btns.length; i++) {
@@ -212,11 +276,11 @@ const LoginPage = (() => {
         }
     };
 
-    // Public module exports
     return {
         init: () => {
             initTheme();
             initPasswordToggle();
+            initPasswordStrength();
             initErrorHandling();
             initFormSubmit();
             initSocialPlaceholders();
@@ -227,7 +291,6 @@ const LoginPage = (() => {
     };
 })();
 
-// Auto-run initialization when layout finishes loading
 document.addEventListener('DOMContentLoaded', () => {
-    LoginPage.init();
+    RegisterPage.init();
 });
