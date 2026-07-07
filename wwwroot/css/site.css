@@ -607,6 +607,11 @@ body.light-theme select option {
 
 .alert-actions {
   width: 100%;
+  grid-template-columns: 1fr;
+}
+
+.alert-actions--confirm {
+  grid-template-columns: 1fr 1fr;
 }
 
 /* Alert Type Customization */
