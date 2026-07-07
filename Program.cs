@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using PersonalFinanceTracker.Data;
 using PersonalFinanceTracker.Repositories;
@@ -30,6 +31,7 @@ builder.Services.AddAuthentication(options =>
     options.SignInScheme = "ExternalCookie";
     options.ClientId = builder.Configuration["Authentication:Google:ClientId"] ?? "MOCK_CLIENT_ID";
     options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"] ?? "MOCK_CLIENT_SECRET";
+    options.ClaimActions.MapJsonKey("picture", "picture");
 });
 
 // Register Repositories

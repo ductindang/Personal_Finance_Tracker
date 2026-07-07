@@ -65,7 +65,7 @@
                     var profilePic = User.FindFirst("ProfilePicture")?.Value ?? "https://avatar-management--avatars.us-west-2.prod.public.atl-paas.net/712020:e878da9b-63da-4d9d-895d-92478f695579/152fb82e-dd1a-44a4-bdca-57ab9feb5d58/48";
                     var displayName = User.Identity?.Name ?? "User";
                     <div class="user-profile-widget">
-                        <img src="@profilePic" alt="Avatar" class="user-avatar" />
+                        <img src="@profilePic" alt="Avatar" class="user-avatar" referrerpolicy="no-referrer" />
                         <div class="user-info">
                             <span class="user-name">@displayName</span>
                             <span class="user-role">Authenticated</span>
