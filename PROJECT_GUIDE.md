@@ -100,10 +100,26 @@ erDiagram
         string Name
         string Type
     }
+    RECURRING_TRANSACTIONS {
+        int Id PK
+        string Type
+        decimal Amount
+        string Category
+        string Description
+        string Frequency
+        datetime StartDate
+        datetime EndDate
+        datetime NextOccurrence
+        datetime LastProcessed
+        bool IsActive
+        datetime CreatedAt
+        int UserId FK
+    }
 
     USERS ||--o{ TRANSACTIONS : has
     USERS ||--o{ BUDGETS : monitors
     USERS ||--o{ SAVINGS_GOALS : targets
+    USERS ||--o{ RECURRING_TRANSACTIONS : configures
 ```
 
 ### Entities Details
@@ -150,6 +166,22 @@ Master lookup items for UI dropdowns. Seeded with 12 items (Salary, Investment, 
 - `Id` (int, PK)
 - `Name` (string)
 - `Type` (string: `"income"` or `"expense"`)
+
+#### 6. `RecurringTransaction`
+Defines rules for generating recurring income or expense transactions automatically.
+- `Id` (int, PK)
+- `Type` (string: `"income"` or `"expense"`)
+- `Amount` (decimal, Precision 18, 2)
+- `Category` (string)
+- `Description` (string)
+- `Frequency` (string: `"Daily"`, `"Weekly"`, `"Monthly"`, or `"Yearly"`)
+- `StartDate` (DateTime)
+- `EndDate` (DateTime, nullable)
+- `NextOccurrence` (DateTime)
+- `LastProcessed` (DateTime, nullable)
+- `IsActive` (bool)
+- `CreatedAt` (DateTime)
+- `UserId` (int, FK referencing `User`)
 
 ---
 
@@ -249,6 +281,14 @@ sequenceDiagram
 - Upon success, the system checks if the email exists in our `Users` table:
   - If yes, logs them in.
   - If no, automatically registers a new user with `IsEmailVerified = true` (since Google handles verification), creates a default user entry without password hash, and logs them in.
+
+### 4. Recurring Transactions Processing
+- Active recurring transactions are evaluated using the `ProcessDueRecurringTransactionsAsync(int userId)` method.
+- For each active transaction configuration:
+  - The system checks if `NextOccurrence <= DateTime.UtcNow`.
+  - While this condition is met, a new `Transaction` is generated with the occurrence date, and `NextOccurrence` is incremented according to the configured `Frequency` (`Daily`, `Weekly`, `Monthly`, `Yearly`).
+  - If a recurring transaction defines an `EndDate` and `NextOccurrence` exceeds it, the recurring transaction is automatically marked as inactive (`IsActive = false`).
+  - Once processed, both the newly generated transactions and the updated recurring configuration (including `LastProcessed` and `NextOccurrence` properties) are saved transactionally to the database.
 
 ---
 

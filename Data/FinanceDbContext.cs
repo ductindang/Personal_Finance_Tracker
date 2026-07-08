@@ -15,6 +15,7 @@ namespace PersonalFinanceTracker.Data
         public DbSet<SavingsGoal> SavingsGoals { get; set; } = null!;
         public DbSet<Category> Categories { get; set; } = null!;
         public DbSet<User> Users { get; set; } = null!;
+        public DbSet<RecurringTransaction> RecurringTransactions { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -64,6 +65,10 @@ namespace PersonalFinanceTracker.Data
 
             modelBuilder.Entity<SavingsGoal>()
                 .Property(g => g.CurrentAmount)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<RecurringTransaction>()
+                .Property(rt => rt.Amount)
                 .HasPrecision(18, 2);
         }
     }
