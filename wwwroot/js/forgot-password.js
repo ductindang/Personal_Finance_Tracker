@@ -259,14 +259,21 @@ const ForgotPasswordPage = (() => {
         const passwordInput = document.querySelector(DOM.passwordInput);
         const confirmPasswordInput = document.querySelector(DOM.confirmPasswordInput);
 
-        // Basic client-side validation rules
+        // Enforce strict client-side validation aligned with registration
         if (!passwordInput || !passwordInput.value) {
             showError("Please enter your new password.");
             return;
         }
 
-        if (passwordInput.value.length < 6) {
-            showError("Password must be at least 6 characters long.");
+        if (passwordInput.value.length < 8) {
+            showError("Password must be at least 8 characters long.");
+            return;
+        }
+
+        // Validate complexity (at least 1 uppercase, 1 lowercase, 1 digit, and 1 special character)
+        const passwordComplexityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+        if (!passwordComplexityRegex.test(passwordInput.value)) {
+            showError("Password must contain at least 1 uppercase letter, 1 lowercase letter, 1 number, and 1 special character.");
             return;
         }
 

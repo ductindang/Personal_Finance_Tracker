@@ -96,3 +96,10 @@ To prevent accidental modifications, data loss, or incorrect workflows in Jira:
 - **Search & Scope Constraints**: Only retrieve or modify issues that are directly relevant to this workspace project. Do not run broad bulk actions unless requested.
 - **No Mock IDs**: Ensure Jira project keys (e.g. `KAN`, `SAM1`) and issue keys are derived directly from Jira search results, not hardcoded or guessed.
 - **Sanitized Comments & Content**: Keep all automated logs, comments, and issue descriptions professional, concise, and focused strictly on the technical context. Avoid publishing internal debugging scripts or credentials.
+
+---
+
+## 📝 Documentation Maintenance Rule
+
+- **Keep Project Guide Updated**: Whenever any new feature, controller, service, database schema, or integration is added, changed, or deleted, the agent must immediately update [PROJECT_GUIDE.md](file:///c:/Users/tin.dang/source/AI_Project/Personal_Finance_Tracker/PROJECT_GUIDE.md) to ensure the documentation is fully up to date and covers the complete project scope.
+
