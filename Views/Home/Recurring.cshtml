@@ -1,0 +1,156 @@
+@{
+    ViewData["Title"] = "Recurring Transactions";
+    ViewData["Subtitle"] = "Set up and manage automated scheduled income and expenses.";
+}
+
+@section Head {
+    <link rel="stylesheet" href="~/css/recurring.css" asp-append-version="true" />
+}
+
+<div class="view-panel active">
+    <!-- Summary Metrics Cards -->
+    <div class="metrics-grid">
+        <div class="metric-card active-configs">
+            <div class="metric-header">
+                <span class="metric-title">Active Configs</span>
+                <i class="fa-solid fa-arrows-spin metric-icon"></i>
+            </div>
+            <div class="metric-value" id="metric-active-count">0</div>
+        </div>
+        <div class="metric-card recurring-inflow">
+            <div class="metric-header">
+                <span class="metric-title">Monthly Est. Income</span>
+                <i class="fa-solid fa-arrow-trend-up metric-icon income"></i>
+            </div>
+            <div class="metric-value income" id="metric-total-inflow">$0.00</div>
+        </div>
+        <div class="metric-card recurring-outflow">
+            <div class="metric-header">
+                <span class="metric-title">Monthly Est. Outflow</span>
+                <i class="fa-solid fa-arrow-trend-down metric-icon expense"></i>
+            </div>
+            <div class="metric-value expense" id="metric-total-outflow">$0.00</div>
+        </div>
+    </div>
+
+    <!-- Management Card -->
+    <section class="card">
+        <div class="card-header-actions">
+            <h2>Recurring Configurations</h2>
+            <button id="add-recurring-btn" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> Add Recurring
+            </button>
+        </div>
+
+        <div class="table-container">
+            <table class="recurring-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Frequency</th>
+                        <th>Amount</th>
+                        <th>Next Run</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="recurring-tbody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: var(--text-secondary);">Loading configurations...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<!-- Add/Edit Recurring Modal -->
+<div class="modal" id="recurring-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="recurring-modal-title">Add Recurring Transaction</h2>
+            <button class="modal-close" id="recurring-modal-close-btn">&times;</button>
+        </div>
+        <form id="recurring-form" class="modal-form">
+            <input type="hidden" id="rec-id">
+            
+            <div class="form-group">
+                <label>Transaction Type</label>
+                <div class="toggle-switch-wrapper">
+                    <input type="radio" id="rec-type-expense" name="rec-type" value="expense" checked>
+                    <label for="rec-type-expense" class="toggle-btn toggle-expense">Expense</label>
+                    
+                    <input type="radio" id="rec-type-income" name="rec-type" value="income">
+                    <label for="rec-type-income" class="toggle-btn toggle-income">Income</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="rec-amount">Amount</label>
+                <div class="input-prefix-wrapper">
+                    <span class="currency-prefix">$</span>
+                    <input type="number" id="rec-amount" step="0.01" min="0.01" required placeholder="0.00">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="rec-category">Category</label>
+                    <select id="rec-category" required>
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="rec-frequency">Frequency</label>
+                    <select id="rec-frequency" required>
+                        <option value="Daily">Daily</option>
+                        <option value="Weekly">Weekly</option>
+                        <option value="Monthly" selected>Monthly</option>
+                        <option value="Yearly">Yearly</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="rec-startdate">Start Date</label>
+                    <input type="date" id="rec-startdate" required>
+                </div>
+                <div class="form-group">
+                    <label for="rec-enddate">End Date (Optional)</label>
+                    <input type="date" id="rec-enddate">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="rec-description">Description</label>
+                <input type="text" id="rec-description" required placeholder="e.g. Netflix Subscription">
+            </div>
+
+            <div class="form-group form-checkbox-group">
+                <label class="checkbox-container">
+                    <input type="checkbox" id="rec-isactive" checked>
+                    <span class="checkbox-checkmark"></span>
+                    Is Active
+                </label>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" id="rec-cancel-btn" class="btn btn-secondary-outline">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Configuration</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/recurring.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.AuraApp && typeof window.AuraApp.initRecurring === 'function') {
+                window.AuraApp.initRecurring();
+            }
+        });
+    </script>
+}

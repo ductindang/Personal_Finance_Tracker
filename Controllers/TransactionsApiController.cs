@@ -13,10 +13,14 @@ namespace PersonalFinanceTracker.Controllers;
 public class TransactionsApiController : Controller
 {
     private readonly ITransactionService _transactionService;
+    private readonly IRecurringTransactionService _recurringTransactionService;
 
-    public TransactionsApiController(ITransactionService transactionService)
+    public TransactionsApiController(
+        ITransactionService transactionService,
+        IRecurringTransactionService recurringTransactionService)
     {
         _transactionService = transactionService;
+        _recurringTransactionService = recurringTransactionService;
     }
 
     private int CurrentUserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -28,6 +32,9 @@ public class TransactionsApiController : Controller
     {
         try
         {
+            // Auto-process due recurring transactions
+            await _recurringTransactionService.ProcessDueRecurringTransactionsAsync(CurrentUserId);
+
             var transactions = await _transactionService.GetRecentTransactionsAsync(CurrentUserId);
             return Json(transactions);
         }
@@ -45,6 +52,9 @@ public class TransactionsApiController : Controller
     {
         try
         {
+            // Auto-process due recurring transactions
+            await _recurringTransactionService.ProcessDueRecurringTransactionsAsync(CurrentUserId);
+
             var (total, data) = await _transactionService.GetTransactionsAsync(
                 CurrentUserId, search, type, category, dateFrom, dateTo, page, pageSize);
 

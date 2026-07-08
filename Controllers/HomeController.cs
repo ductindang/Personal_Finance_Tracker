@@ -12,6 +12,7 @@ public class HomeController : Controller
     public IActionResult Transactions() => View();
     public IActionResult Budgets() => View();
     public IActionResult Savings() => View();
+    public IActionResult Recurring() => View();
     public IActionResult Settings() => View();
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

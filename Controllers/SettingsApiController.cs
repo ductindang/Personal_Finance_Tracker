@@ -14,10 +14,14 @@ namespace PersonalFinanceTracker.Controllers;
 public class SettingsApiController : Controller
 {
     private readonly ISettingsService _settingsService;
+    private readonly IRecurringTransactionService _recurringTransactionService;
 
-    public SettingsApiController(ISettingsService settingsService)
+    public SettingsApiController(
+        ISettingsService settingsService,
+        IRecurringTransactionService recurringTransactionService)
     {
         _settingsService = settingsService;
+        _recurringTransactionService = recurringTransactionService;
     }
 
     private int CurrentUserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -29,6 +33,9 @@ public class SettingsApiController : Controller
     {
         try
         {
+            // Auto-process due recurring transactions
+            await _recurringTransactionService.ProcessDueRecurringTransactionsAsync(CurrentUserId);
+
             var summary = await _settingsService.GetFinancialSummaryAsync(CurrentUserId);
             return Json(new {
                 balance = summary.Balance,

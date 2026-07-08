@@ -243,6 +243,11 @@ All AJAX interactions execute against the following RESTful paths. Users must be
 | **GET** | `/api/finance/backup/export` | Export personal data snapshot | Returns a downloadable backup file `finance_backup_*.json` |
 | **POST** | `/api/finance/backup/import` | Upload backup file to overwrite/fill data | Request Form File. Returns success payload |
 | **POST** | `/api/finance/backup/purge` | Wipe all financial data belonging to the user | Returns `{ success: true }` |
+| **GET** | `/api/finance/recurring` | Retrieve all recurring transaction configurations | Returns list of `RecurringTransaction` |
+| **GET** | `/api/finance/recurring/{id}` | Fetch details of one recurring transaction config | Returns `RecurringTransaction` object or `404` |
+| **POST** | `/api/finance/recurring` | Save (Create/Update) a recurring transaction configuration | Payload: `RecurringTransaction` object |
+| **DELETE** | `/api/finance/recurring/{id}` | Delete a recurring transaction config | Returns `{ success: true }` |
+| **POST** | `/api/finance/recurring/process` | Manually trigger generation engine to process due recurring transactions | Returns success status with count and generated `Transaction` list |
 
 ---
 

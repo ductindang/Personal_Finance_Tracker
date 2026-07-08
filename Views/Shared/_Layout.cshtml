@@ -53,6 +53,10 @@
                     <i class="fa-solid fa-bullseye"></i>
                     <span>Savings Goals</span>
                 </a>
+                <a asp-controller="Home" asp-action="Recurring" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Recurring" ? "active" : "")">
+                    <i class="fa-solid fa-arrows-spin"></i>
+                    <span>Recurring</span>
+                </a>
                 <a asp-controller="Home" asp-action="Settings" class="nav-item @(ViewContext.RouteData.Values["action"]?.ToString() == "Settings" ? "active" : "")">
                     <i class="fa-solid fa-sliders"></i>
                     <span>Settings</span>
