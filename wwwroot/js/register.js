@@ -1,32 +1,35 @@
 /* -------------------------------------------------------------
  * Aura Style System - Register Page Specific JavaScript Module
- * Encapsulated IIFE pattern to prevent global namespace pollution
+ * Encapsulated IIFE pattern to prevent global namespace pollution.
+ * This pattern isolates variables, keeping them out of the global window scope.
  * ------------------------------------------------------------- */
 
 const RegisterPage = (() => {
-    // DOM selectors object
+    // 1. Selector mapping definitions for DOM elements
     const DOM = {
-        themeSelect: '#theme-select',
-        passwordField: '#Password',
-        confirmPasswordField: '#ConfirmPassword',
-        togglePasswordBtn: '#toggle-password-btn',
-        toggleConfirmPasswordBtn: '#toggle-confirm-password-btn',
-        strengthFill: '#strength-fill',
-        strengthText: '#strength-text',
-        authForm: '.auth-form',
-        toastContainer: '#toast-container',
-        placeholderBtns: '.placeholder-btn'
+        themeSelect: '#theme-select',                        // Theme selection dropdown element
+        passwordField: '#Password',                          // Primary password input field
+        confirmPasswordField: '#ConfirmPassword',            // Confirm password input field
+        togglePasswordBtn: '#toggle-password-btn',          // Toggle icon for primary password visibility
+        toggleConfirmPasswordBtn: '#toggle-confirm-password-btn', // Toggle icon for confirmation password visibility
+        strengthFill: '#strength-fill',                      // Div representing the progress fill bar
+        strengthText: '#strength-text',                      // Text label displaying strength evaluation
+        authForm: '.auth-form',                              // Main registration form class
+        toastContainer: '#toast-container',                  // Toast notifications container element
+        placeholderBtns: '.placeholder-btn'                  // Placeholder social auth buttons
     };
 
-    // Initialize layout theme dropdown
+    // 2. Initialize and configure theme support (Dark/Light modes)
     const initTheme = () => {
         const themeSelect = document.querySelector(DOM.themeSelect);
+        // Load stored user theme configuration or default to 'dark'
         const currentTheme = localStorage.getItem('aura_theme') || 'dark';
         
         if (themeSelect) {
             themeSelect.value = currentTheme;
             applyTheme(currentTheme);
 
+            // Handle theme changes dynamically from dropdown select changes
             themeSelect.addEventListener('change', (e) => {
                 const selectedTheme = e.target.value;
                 localStorage.setItem('aura_theme', selectedTheme);
@@ -35,7 +38,7 @@ const RegisterPage = (() => {
         }
     };
 
-    // Apply classes for background theme colors
+    // Apply the active layout theme state classes to the document body
     const applyTheme = (themeName) => {
         if (themeName === 'light') {
             document.body.classList.add('light-theme');
@@ -46,7 +49,7 @@ const RegisterPage = (() => {
         }
     };
 
-    // Show or hide password characters
+    // 3. Show or hide password characters on toggle button clicks
     const initPasswordToggle = () => {
         const setupToggle = (btnId, inputId) => {
             const toggleBtn = document.querySelector(btnId);
@@ -56,10 +59,12 @@ const RegisterPage = (() => {
                     const isPassword = inputField.getAttribute('type') === 'password';
                     
                     if (isPassword) {
+                        // Switch type to text to reveal plaintext characters
                         inputField.setAttribute('type', 'text');
                         toggleBtn.classList.remove('fa-eye-slash');
                         toggleBtn.classList.add('fa-eye');
                     } else {
+                        // Switch type to password to hide characters
                         inputField.setAttribute('type', 'password');
                         toggleBtn.classList.remove('fa-eye');
                         toggleBtn.classList.add('fa-eye-slash');
@@ -68,11 +73,12 @@ const RegisterPage = (() => {
             }
         };
 
+        // Attach event listeners for password fields
         setupToggle(DOM.togglePasswordBtn, DOM.passwordField);
         setupToggle(DOM.toggleConfirmPasswordBtn, DOM.confirmPasswordField);
     };
 
-    // Password strength verification
+    // 4. Password strength evaluation meter configuration
     const initPasswordStrength = () => {
         const passwordInput = document.querySelector(DOM.passwordField);
         const strengthFill = document.querySelector(DOM.strengthFill);
@@ -80,52 +86,51 @@ const RegisterPage = (() => {
 
         if (!passwordInput || !strengthFill || !strengthText) return;
 
+        // Listen for user typing inputs in the password field
         passwordInput.addEventListener('input', () => {
             const val = passwordInput.value;
             let score = 0;
 
             if (!val) {
+                // Reset state when input is empty
                 strengthFill.style.width = '0%';
                 strengthFill.style.backgroundColor = 'transparent';
                 strengthText.textContent = 'Password Strength';
                 return;
             }
 
-            // Length rule
-            if (val.length >= 8) score++;
-            // Lower case rule
-            if (/[a-z]/.test(val)) score++;
-            // Upper case rule
-            if (/[A-Z]/.test(val)) score++;
-            // Number rule
-            if (/\d/.test(val)) score++;
-            // Special character rule
-            if (/[\W_]/.test(val)) score++;
+            // Score-based evaluation rules:
+            if (val.length >= 8) score++;      // Rule 1: Length rule (>= 8 chars)
+            if (/[a-z]/.test(val)) score++;     // Rule 2: Lower case letter present
+            if (/[A-Z]/.test(val)) score++;     // Rule 3: Upper case letter present
+            if (/\d/.test(val)) score++;        // Rule 4: Number digit present
+            if (/[\W_]/.test(val)) score++;     // Rule 5: Special symbol character present
 
             let pct = 0;
             let color = '';
             let text = '';
 
+            // Apply evaluations based on rule match counts
             switch (score) {
                 case 1:
                 case 2:
                     pct = 25;
-                    color = '#ef4444'; // Red
+                    color = '#ef4444'; // Weak score -> Red
                     text = 'Weak';
                     break;
                 case 3:
                     pct = 50;
-                    color = '#f59e0b'; // Amber
+                    color = '#f59e0b'; // Fair score -> Amber
                     text = 'Fair';
                     break;
                 case 4:
                     pct = 75;
-                    color = '#3b82f6'; // Blue
+                    color = '#3b82f6'; // Good score -> Blue
                     text = 'Good';
                     break;
                 case 5:
                     pct = 100;
-                    color = '#10b981'; // Green
+                    color = '#10b981'; // Strong score -> Green
                     text = 'Strong & Secure';
                     break;
                 default:
@@ -134,6 +139,7 @@ const RegisterPage = (() => {
                     text = 'Too short';
             }
 
+            // Update DOM element states dynamically with transitions
             strengthFill.style.width = `${pct}%`;
             strengthFill.style.backgroundColor = color;
             strengthText.textContent = `Strength: ${text}`;
@@ -141,11 +147,12 @@ const RegisterPage = (() => {
         });
     };
 
-    // Build and display toaster messages
+    // 5. Toast alert rendering and close management animations
     const showToast = (title, message, toastType = 'info') => {
         const container = document.querySelector(DOM.toastContainer);
         if (!container) return;
 
+        // Build HTML markup structure for toaster
         const toast = document.createElement('div');
         toast.className = `toast toast--${toastType}`;
 
@@ -169,12 +176,12 @@ const RegisterPage = (() => {
 
         container.appendChild(toast);
 
-        // Transition animation
+        // Slide entrance transitions
         setTimeout(() => {
             toast.classList.add('show');
         }, 10);
 
-        // Bind click handler on close button
+        // Close button click listener
         const closeBtn = toast.querySelector('.toast-close');
         if (closeBtn) {
             closeBtn.addEventListener('click', () => {
@@ -182,7 +189,7 @@ const RegisterPage = (() => {
             });
         }
 
-        // Auto close toast
+        // Auto destroy notifications after 5 seconds
         setTimeout(() => {
             if (toast.parentNode) {
                 removeToast(toast);
@@ -199,13 +206,15 @@ const RegisterPage = (() => {
         });
     };
 
-    // Check for validation errors or login issues returned by server
+    // 6. Check for backend validation errors or notifications passed in markup data-attributes
     const initErrorHandling = () => {
+        // Read server TempData feedback tags
         const serverErrorData = document.querySelector('#server-error-data');
         if (serverErrorData && serverErrorData.dataset.message) {
             showToast("Registration Failure", serverErrorData.dataset.message, "error");
         }
 
+        // Read standard ASP.NET model validation list elements
         const summaryContainer = document.querySelector('#validation-summary-container');
         if (summaryContainer) {
             const errors = summaryContainer.querySelectorAll('li');
@@ -219,15 +228,16 @@ const RegisterPage = (() => {
         }
     };
 
-    // Integrate with jQuery unobtrusive form validation
+    // 7. Configure jQuery unobtrusive form validation hooks
     const initFormSubmit = () => {
         const form = document.querySelector(DOM.authForm);
         if (form) {
             const jqForm = $(form);
 
-            // Configure jQuery validator behavior
+            // Configure jQuery validator behavior tweaks
             const validator = jqForm.data('validator');
             if (validator) {
+                // Validate fields as soon as user focuses out of a field
                 validator.settings.onfocusout = function (element) {
                     const isCheckable = this.checkable(element);
                     const isAlreadySubmitted = element.name in this.submitted;
@@ -238,6 +248,7 @@ const RegisterPage = (() => {
                     }
                 };
 
+                // Clear validation error highlights dynamically on correct keystrokes
                 validator.settings.onkeyup = function (element) {
                     if (element.name in this.submitted) {
                         this.element(element);
@@ -245,6 +256,7 @@ const RegisterPage = (() => {
                 };
             }
 
+            // Click submission validations to raise warnings for incomplete inputs
             const submitBtn = form.querySelector('button[type="submit"]');
             if (submitBtn) {
                 submitBtn.addEventListener('click', () => {
@@ -263,6 +275,7 @@ const RegisterPage = (() => {
         }
     };
 
+    // 8. Visual placeholders for unconfigured oauth options
     const initSocialPlaceholders = () => {
         const btns = document.querySelectorAll(DOM.placeholderBtns);
         for (let i = 0; i < btns.length; i++) {
@@ -276,6 +289,7 @@ const RegisterPage = (() => {
         }
     };
 
+    // Public API endpoints
     return {
         init: () => {
             initTheme();
@@ -291,6 +305,7 @@ const RegisterPage = (() => {
     };
 })();
 
+// Auto-run module when layout loading is complete
 document.addEventListener('DOMContentLoaded', () => {
     RegisterPage.init();
 });

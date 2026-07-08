@@ -50,6 +50,12 @@ namespace PersonalFinanceTracker.Controllers
                 return View(model);
             }
 
+            if (!user.IsEmailVerified)
+            {
+                TempData["ErrorMessage"] = "Your email address is not verified. Please verify it first.";
+                return RedirectToAction(nameof(VerifyEmail), new { email = user.Email });
+            }
+
             await SignInUserAsync(user);
 
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
@@ -98,8 +104,65 @@ namespace PersonalFinanceTracker.Controllers
                 return View(model);
             }
 
-            TempData["SuccessMessage"] = "Registration successful! Please log in.";
+            TempData["SuccessMessage"] = "Registration successful! A verification code has been sent to your email.";
+            return RedirectToAction(nameof(VerifyEmail), new { email = model.Email });
+        }
+
+        [HttpGet]
+        public IActionResult VerifyEmail(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            ViewData["Email"] = email;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> VerifyEmail(string email, string code)
+        {
+            ViewData["Email"] = email;
+
+            if (string.IsNullOrEmpty(code) || code.Length != 6)
+            {
+                ModelState.AddModelError(string.Empty, "Verification code must be exactly 6 digits.");
+                return View();
+            }
+
+            var (success, errorMessage) = await _accountService.VerifyEmailCodeAsync(email, code);
+            if (!success)
+            {
+                ModelState.AddModelError(string.Empty, errorMessage ?? "Verification failed.");
+                return View();
+            }
+
+            TempData["SuccessMessage"] = "Email verified successfully! You can now log in.";
             return RedirectToAction(nameof(Login));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResendVerificationCode(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            var (success, errorMessage) = await _accountService.ResendEmailVerificationCodeAsync(email);
+            if (!success)
+            {
+                TempData["ErrorMessage"] = errorMessage ?? "Failed to resend verification code.";
+            }
+            else
+            {
+                TempData["SuccessMessage"] = "A new verification code has been sent to your email.";
+            }
+
+            return RedirectToAction(nameof(VerifyEmail), new { email });
         }
 
         [HttpGet]

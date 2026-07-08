@@ -1,0 +1,124 @@
+@{
+    Layout = null;
+    var email = ViewData["Email"] as string;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Verify Email - Aura Finance Tracker</title>
+    
+    <!-- Outfit Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom Site Styles -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <!-- Page Specific Styles -->
+    <link rel="stylesheet" href="~/css/verify-email.css" asp-append-version="true" />
+</head>
+<body class="dark-theme login-body">
+    <!-- Dynamic Gradient Background Blobs -->
+    <div class="bg-blur blob-1"></div>
+    <div class="bg-blur blob-2"></div>
+    <div class="bg-blur blob-3"></div>
+
+    <!-- Floating 3D background shapes from Figma -->
+    <div class="figma-shapes-container">
+        <img src="~/images/figma_shape_101_16131.png" class="figma-shape shape-backdrop" alt="" />
+        <img src="~/images/figma_shape_101_12080.png" class="figma-shape shape-top-left-wave" alt="" />
+        <img src="~/images/figma_shape_101_10074.png" class="figma-shape shape-top-ring" alt="" />
+        <img src="~/images/figma_shape_101_13083.png" class="figma-shape shape-right-spiral" alt="" />
+        <img src="~/images/figma_shape_101_14125.png" class="figma-shape shape-bottom-left-torus" alt="" />
+        <img src="~/images/figma_shape_101_15128.png" class="figma-shape shape-bottom-right-wave" alt="" />
+        <img src="~/images/figma_shape_101_11077.png" class="figma-shape shape-extra-1" alt="" />
+        <img src="~/images/figma_shape_101_17134.png" class="figma-shape shape-extra-2" alt="" />
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <div class="auth-page">
+        <!-- Theme Select Dropdown -->
+        <div class="theme-select-container">
+            <i class="fa-solid fa-circle-half-stroke"></i>
+            <select id="theme-select" aria-label="Select theme">
+                <option value="dark">Dark Theme</option>
+                <option value="light">Light Theme</option>
+            </select>
+        </div>
+
+        <div class="auth-card">
+            <!-- Header -->
+            <div class="auth-header">
+                <div class="auth-logo-text">Your logo</div>
+                <h1 class="auth-title">Verify Email</h1>
+                <p class="auth-subtitle">We have sent a verification code to <br /><strong class="email-highlight">@email</strong></p>
+            </div>
+
+            <!-- Server-side errors/success passed to JS for toast notification -->
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div id="server-error-data" data-message="@TempData["ErrorMessage"]" style="display:none;"></div>
+            }
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div id="server-success-data" data-message="@TempData["SuccessMessage"]" style="display:none;"></div>
+            }
+
+            <!-- Server-side validation summary elements parsed by JS -->
+            <div id="validation-summary-container" style="display:none;">
+                <div asp-validation-summary="ModelOnly" class="validation-summary-errors"></div>
+            </div>
+
+            <!-- Verification Code Form -->
+            <form asp-action="VerifyEmail" method="post" class="auth-form" id="verify-email-form">
+                <!-- ASP.NET model validation summary placeholder -->
+                <div asp-validation-summary="ModelOnly" class="validation-summary-errors" style="display:none;"></div>
+                
+                <input type="hidden" name="email" value="@email" />
+
+                <div class="form-group">
+                    <label for="code">Verification Code</label>
+                    <div class="code-inputs-container">
+                        <!-- Six digit input blocks for verification -->
+                        <input type="text" class="verification-code-input" id="verification-code-display" maxlength="6" placeholder="000000" autocomplete="off" />
+                        <input type="hidden" name="code" id="verification-code-value" />
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn" id="verify-submit-btn">Verify Account</button>
+            </form>
+
+            <!-- Resend Code section -->
+            <form asp-action="ResendVerificationCode" method="post" id="resend-form" style="display:none;">
+                <input type="hidden" name="email" value="@email" />
+            </form>
+            
+            <div class="resend-wrapper">
+                <span>Didn't receive a code?</span>
+                <button type="button" class="resend-btn" id="resend-code-btn">Resend code</button>
+            </div>
+
+            <!-- Bottom Redirect Link -->
+            <div class="register-link-wrapper">
+                <span>Back to </span>
+                <a asp-action="Login" asp-controller="Account" class="register-link">Sign In</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+    <!-- Page Specific Script -->
+    <script src="~/js/verify-email.js" asp-append-version="true"></script>
+</body>
+</html>
