@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -188,18 +189,58 @@ namespace PersonalFinanceTracker.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        public async Task<IActionResult> SendVerificationCode(ForgotPasswordViewModel model)
         {
             if (!ModelState.IsValid)
             {
-                return View(model);
+                return Json(new { success = false, message = "Invalid email address format." });
             }
 
-            await _accountService.ForgotPasswordAsync(model.Email);
-            
-            // For security, do not reveal if the email doesn't exist, but simulate success either way
-            ViewBag.SuccessMessage = $"A password reset link has been sent to {model.Email} (Simulated). Please check your inbox.";
-            return View();
+            var (success, error) = await _accountService.SendVerificationCodeAsync(model.Email);
+            if (!success)
+            {
+                return Json(new { success = false, message = error });
+            }
+
+            return Json(new { success = true, message = "Verification code has been sent to your email." });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> VerifyCode(VerifyCodeViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                return Json(new { success = false, message = errors });
+            }
+
+            var (success, error) = await _accountService.VerifyCodeAsync(model.Email, model.Code);
+            if (!success)
+            {
+                return Json(new { success = false, message = error });
+            }
+
+            return Json(new { success = true, message = "Code verified successfully." });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = string.Join(" ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                return Json(new { success = false, message = errors });
+            }
+
+            var (success, error) = await _accountService.ResetPasswordAsync(model.Email, model.Code, model.Password);
+            if (!success)
+            {
+                return Json(new { success = false, message = error });
+            }
+
+            return Json(new { success = true, message = "Password reset successfully. Redirecting to login..." });
         }
 
         [HttpPost]

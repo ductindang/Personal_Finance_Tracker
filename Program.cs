@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using PersonalFinanceTracker.Data;
+using PersonalFinanceTracker.Models;
 using PersonalFinanceTracker.Repositories;
 using PersonalFinanceTracker.Repositories.Interfaces;
 using PersonalFinanceTracker.Services;
@@ -42,6 +43,8 @@ builder.Services.AddScoped<IBudgetRepository, BudgetRepository>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 
 // Register Services
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Smtp"));
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ISavingsService, SavingsService>();
