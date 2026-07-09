@@ -12,6 +12,7 @@ namespace PersonalFinanceTracker.Models
         public string Category { get; set; } = "Others";
         public string Description { get; set; } = string.Empty;
         public string Frequency { get; set; } = "Monthly"; // "Daily", "Weekly", "Monthly", "Yearly"
+        public string ExecutionTime { get; set; } = "00:00"; // "HH:mm" execution time
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }
         public DateTime NextOccurrence { get; set; }

@@ -273,3 +273,34 @@
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
+
+#rec-type-expense:checked ~ .toggle-expense {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--color-expense);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.1);
+}
+
+#rec-type-income:checked ~ .toggle-income {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--color-income);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+}
+
+.modal-form input[type="time"] {
+  height: 44px;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text-primary);
+  font-family: var(--font-main);
+  padding: 0 1rem;
+  border-radius: 10px;
+  outline: none;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.modal-form input[type="time"]:focus {
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}

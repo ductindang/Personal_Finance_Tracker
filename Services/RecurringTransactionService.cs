@@ -58,6 +58,18 @@ namespace PersonalFinanceTracker.Services
                 return (false, "Frequency must be Daily, Weekly, Monthly, or Yearly.", null);
             }
 
+            if (string.IsNullOrWhiteSpace(model.ExecutionTime) || !TimeSpan.TryParse(model.ExecutionTime, out var executionTimeSpan))
+            {
+                return (false, "Invalid execution time. Format must be HH:mm.", null);
+            }
+
+            // Combine Date with the Execution Time timespan
+            model.StartDate = model.StartDate.Date.Add(executionTimeSpan);
+            if (model.EndDate.HasValue)
+            {
+                model.EndDate = model.EndDate.Value.Date.Add(executionTimeSpan);
+            }
+
             if (model.EndDate.HasValue && model.EndDate.Value < model.StartDate)
             {
                 return (false, "End date cannot be before start date.", null);
@@ -85,19 +97,28 @@ namespace PersonalFinanceTracker.Services
                 existing.Category = model.Category;
                 existing.Description = model.Description;
                 existing.Frequency = freq;
+                existing.ExecutionTime = model.ExecutionTime;
                 existing.StartDate = model.StartDate;
                 existing.EndDate = model.EndDate;
                 existing.IsActive = model.IsActive;
 
-                // Adjust NextOccurrence if StartDate changed and the recurring transaction hasn't processed yet,
-                // or if it got reactivated and NextOccurrence is outdated.
+                // Adjust NextOccurrence based on new configuration rules
                 if (existing.LastProcessed == null)
                 {
                     existing.NextOccurrence = model.StartDate;
                 }
-                else if (existing.NextOccurrence < model.StartDate)
+                else
                 {
-                    existing.NextOccurrence = model.StartDate;
+                    // Recalculate NextOccurrence starting from the last processed date using the new frequency and execution time
+                    var lastProcessedDate = existing.LastProcessed.Value.Date;
+                    existing.NextOccurrence = freq switch
+                    {
+                        "Daily" => lastProcessedDate.AddDays(1).Add(executionTimeSpan),
+                        "Weekly" => lastProcessedDate.AddDays(7).Add(executionTimeSpan),
+                        "Monthly" => lastProcessedDate.AddMonths(1).Add(executionTimeSpan),
+                        "Yearly" => lastProcessedDate.AddYears(1).Add(executionTimeSpan),
+                        _ => lastProcessedDate.AddMonths(1).Add(executionTimeSpan)
+                    };
                 }
 
                 _recurringTransactionRepository.Update(existing);
@@ -123,7 +144,7 @@ namespace PersonalFinanceTracker.Services
 
         public async Task<List<Transaction>> ProcessDueRecurringTransactionsAsync(int userId)
         {
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
             var dueTransactions = await _recurringTransactionRepository.GetActiveDueForUserAsync(userId, now);
             var generatedTransactions = new List<Transaction>();
 

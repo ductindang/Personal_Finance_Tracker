@@ -75,7 +75,10 @@
                         const startStr = startObj.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 
                         const nextObj = new Date(rec.nextOccurrence);
-                        const nextStr = nextObj.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                        const nextDateStr = nextObj.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                        const pad = (num) => String(num).padStart(2, '0');
+                        const nextTimeStr = `${pad(nextObj.getHours())}:${pad(nextObj.getMinutes())}`;
+                        const nextStr = `${nextDateStr} ${nextTimeStr}`;
 
                         let amountClass = 'amount-expense';
                         let badgeClass = 'badge-expense';
@@ -196,6 +199,7 @@
             const endDateInput = document.getElementById('rec-enddate');
             const descriptionInput = document.getElementById('rec-description');
             const isActiveInput = document.getElementById('rec-isactive');
+            const executionTimeInput = document.getElementById('rec-executiontime');
 
             if (id === 0) {
                 // Add mode
@@ -204,8 +208,9 @@
                 if (typeExpense) typeExpense.checked = true;
                 this.populateCategories('expense');
                 if (amountInput) amountInput.value = '';
-                if (frequencyInput) frequencyInput.value = 'Monthly';
+                if (frequencyInput) frequencyInput.value = 'Daily';
                 if (startDateInput) startDateInput.value = new Date().toISOString().substring(0, 10);
+                if (executionTimeInput) executionTimeInput.value = '00:00';
                 if (endDateInput) endDateInput.value = '';
                 if (descriptionInput) descriptionInput.value = '';
                 if (isActiveInput) isActiveInput.checked = true;
@@ -235,6 +240,7 @@
                         }
                         if (descriptionInput) descriptionInput.value = rec.description;
                         if (isActiveInput) isActiveInput.checked = rec.isActive;
+                        if (executionTimeInput) executionTimeInput.value = rec.executionTime || '00:00';
 
                         this.showModal('recurring-modal');
                     }
@@ -254,6 +260,7 @@
             const categoryInput = document.getElementById('rec-category');
             const frequencyInput = document.getElementById('rec-frequency');
             const startDateInput = document.getElementById('rec-startdate');
+            const executionTimeInput = document.getElementById('rec-executiontime');
             const endDateInput = document.getElementById('rec-enddate');
             const descriptionInput = document.getElementById('rec-description');
             const isActiveInput = document.getElementById('rec-isactive');
@@ -265,6 +272,7 @@
                 category: categoryInput ? categoryInput.value : 'Others',
                 frequency: frequencyInput ? frequencyInput.value : 'Monthly',
                 startDate: new Date(startDateInput.value).toISOString(),
+                executionTime: executionTimeInput ? executionTimeInput.value : '00:00',
                 endDate: endDateInput.value ? new Date(endDateInput.value).toISOString() : null,
                 description: descriptionInput.value,
                 isActive: isActiveInput ? isActiveInput.checked : true
