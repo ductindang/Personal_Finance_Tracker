@@ -91,9 +91,6 @@
             </div>
 
             <form asp-action="Login" asp-route-returnUrl="@returnUrl" method="post" class="auth-form">
-                <!-- ASP.NET model validation summary placeholder (styled for fallback/accessibility) -->
-                <div asp-validation-summary="ModelOnly" class="validation-summary-errors" style="display:none;"></div>
-
                 <div class="form-group">
                     <label asp-for="UsernameOrEmail">Email</label>
                     <div class="input-wrapper">

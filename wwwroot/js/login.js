@@ -157,48 +157,82 @@ const LoginPage = (() => {
     // 6. Configure jQuery unobtrusive form validation hooks
     const initFormSubmit = () => {
         const form = document.querySelector(DOM.authForm);
-        if (form) {
-            const jqForm = $(form);
+        if (!form) return;
 
-            // Configure jQuery validator behavior tweaks
-            const validator = jqForm.data('validator');
-            if (validator) {
-                // Validate fields as soon as user focuses out of a field
-                validator.settings.onfocusout = function (element) {
-                    const isCheckable = this.checkable(element);
-                    const isAlreadySubmitted = element.name in this.submitted;
-                    const isRequired = !this.optional(element);
+        const jqForm = $(form);
+        const validator = jqForm.data('validator');
 
-                    if (!isCheckable && (isAlreadySubmitted || isRequired)) {
-                        this.element(element);
-                    }
-                };
+        if (validator) {
+            validator.settings.onfocusout = function (element) {
+                const isCheckable = this.checkable(element);
+                const isAlreadySubmitted = element.name in this.submitted;
+                const isRequired = !this.optional(element);
 
-                // Clear validation error highlights dynamically on correct keystrokes
-                validator.settings.onkeyup = function (element) {
-                    if (element.name in this.submitted) {
-                        this.element(element);
-                    }
-                };
-            }
+                if (!isCheckable && (isAlreadySubmitted || isRequired)) {
+                    this.element(element);
+                }
+            };
 
-            // Click submission validations to raise warnings for incomplete inputs
-            const submitBtn = form.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.addEventListener('click', () => {
-                    if (jqForm.length && !jqForm.valid()) {
-                        setTimeout(() => {
-                            const firstError = form.querySelector('.field-validation-error');
-                            let msg = "Please correct the highlighted errors in the form.";
-                            if (firstError && firstError.textContent.trim() !== "") {
-                                msg = firstError.textContent.trim();
-                            }
-                            showToast("Form Incomplete", msg, "warning");
-                        }, 50);
-                    }
-                });
-            }
+            validator.settings.onkeyup = function (element) {
+                if (element.name in this.submitted) {
+                    this.element(element);
+                }
+            };
         }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Run jQuery validation checks first
+            if (jqForm.length && !jqForm.valid()) {
+                const firstError = form.querySelector('.field-validation-error');
+                let msg = "Please correct the highlighted errors in the form.";
+                if (firstError?.textContent.trim()) {
+                    msg = firstError.textContent.trim();
+                }
+                showToast("Form Incomplete", msg, "warning");
+                return;
+            }
+
+            // Perform AJAX submission
+            const formData = new FormData(form);
+            const bodyData = new URLSearchParams(formData);
+
+            try {
+                const response = await fetch(form.action || window.location.pathname, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: bodyData
+                });
+
+                if (!response.ok) {
+                    throw new Error("Server returned an error response.");
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    window.location.href = result.redirectUrl;
+                } else {
+                    if (result.requiresVerification && result.redirectUrl) {
+                        showToast("Verification Required", "Redirecting to verify your email...", "warning");
+                        setTimeout(() => {
+                            window.location.href = result.redirectUrl;
+                        }, 1500);
+                    } else if (result.errors) {
+                        result.errors.forEach(err => {
+                            showToast("Login Failure", err, "error");
+                        });
+                    } else {
+                        showToast("Login Failure", "An unknown error occurred.", "error");
+                    }
+                }
+            } catch (error) {
+                showToast("Connection Error", "Failed to contact the server. Please check your connection.", "error");
+            }
+        });
     };
 
     // 7. Visual placeholders for unconfigured oauth options

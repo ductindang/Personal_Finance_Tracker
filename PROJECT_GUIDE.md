@@ -267,11 +267,13 @@ sequenceDiagram
     Service->>SMTP: SendVerificationCodeAsync(email)
     SMTP-->>User: Verification Email (6 digit code)
     Service-->>Controller: Success response
-    Controller-->>User: Redirect to VerifyEmail view
+    Controller-->>User: Return JSON (success & redirectUrl)
+    Note over User: JS redirects to VerifyEmail view
     User->>Controller: POST VerifyEmail(email, code)
     Controller->>Service: VerifyEmailCodeAsync(email, code)
     Service-->>Controller: Verification success (set IsEmailVerified = true)
-    Controller-->>User: Redirect to Login
+    Controller-->>User: Return JSON (success & redirectUrl)
+    Note over User: JS redirects to Login
 ```
 
 ### 2. Forgot Password Flow

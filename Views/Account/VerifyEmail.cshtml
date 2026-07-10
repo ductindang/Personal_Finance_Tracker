@@ -79,9 +79,6 @@
 
             <!-- Verification Code Form -->
             <form asp-action="VerifyEmail" method="post" class="auth-form" id="verify-email-form">
-                <!-- ASP.NET model validation summary placeholder -->
-                <div asp-validation-summary="ModelOnly" class="validation-summary-errors" style="display:none;"></div>
-                
                 <input type="hidden" name="email" value="@email" />
 
                 <div class="form-group">

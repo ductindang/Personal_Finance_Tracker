@@ -79,6 +79,10 @@
             {
                 <div id="server-error-data" data-message="@TempData["ErrorMessage"]" style="display:none;"></div>
             }
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div id="server-success-data" data-message="@TempData["SuccessMessage"]" style="display:none;"></div>
+            }
 
             <!-- Server-side validation summary elements parsed by JS -->
             <div id="validation-summary-container" style="display:none;">
@@ -86,9 +90,6 @@
             </div>
 
             <form asp-action="Register" method="post" class="auth-form" id="register-form">
-                <!-- ASP.NET model validation summary placeholder -->
-                <div asp-validation-summary="ModelOnly" class="validation-summary-errors" style="display:none;"></div>
-
                 <div class="form-group">
                     <label asp-for="FullName">Full Name</label>
                     <div class="input-wrapper">

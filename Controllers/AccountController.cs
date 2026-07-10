@@ -40,30 +40,25 @@ namespace PersonalFinanceTracker.Controllers
 
             if (!ModelState.IsValid)
             {
-                return View(model);
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return Json(new { success = false, errors });
             }
 
             var user = await _accountService.ValidateLoginAsync(model.UsernameOrEmail, model.Password);
             if (user == null)
             {
-                ModelState.AddModelError(string.Empty, "Invalid login credentials.");
-                return View(model);
+                return Json(new { success = false, errors = new[] { "Invalid login credentials." } });
             }
 
             if (!user.IsEmailVerified)
             {
-                TempData["ErrorMessage"] = "Your email address is not verified. Please verify it first.";
-                return RedirectToAction(nameof(VerifyEmail), new { email = user.Email });
+                return Json(new { success = false, requiresVerification = true, redirectUrl = Url.Action(nameof(VerifyEmail), new { email = user.Email }) });
             }
 
             await SignInUserAsync(user);
 
-            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-            {
-                return Redirect(returnUrl);
-            }
-
-            return RedirectToAction("Index", "Home");
+            var redirectUrl = (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl)) ? returnUrl : Url.Action("Index", "Home");
+            return Json(new { success = true, redirectUrl });
         }
 
         [HttpGet]
@@ -83,29 +78,17 @@ namespace PersonalFinanceTracker.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return View(model);
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
+                return Json(new { success = false, errors });
             }
 
             var (success, errorMessage) = await _accountService.RegisterAsync(model);
             if (!success)
             {
-                if (errorMessage != null && errorMessage.Contains("Email"))
-                {
-                    ModelState.AddModelError("Email", errorMessage);
-                }
-                else if (errorMessage != null && errorMessage.Contains("Username"))
-                {
-                    ModelState.AddModelError("Username", errorMessage);
-                }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, errorMessage ?? "Registration failed.");
-                }
-                return View(model);
+                return Json(new { success = false, errors = new[] { errorMessage ?? "Registration failed." } });
             }
 
-            TempData["SuccessMessage"] = "Registration successful! A verification code has been sent to your email.";
-            return RedirectToAction(nameof(VerifyEmail), new { email = model.Email });
+            return Json(new { success = true, redirectUrl = Url.Action(nameof(VerifyEmail), new { email = model.Email }) });
         }
 
         [HttpGet]
@@ -128,19 +111,16 @@ namespace PersonalFinanceTracker.Controllers
 
             if (string.IsNullOrEmpty(code) || code.Length != 6)
             {
-                ModelState.AddModelError(string.Empty, "Verification code must be exactly 6 digits.");
-                return View();
+                return Json(new { success = false, errors = new[] { "Verification code must be exactly 6 digits." } });
             }
 
             var (success, errorMessage) = await _accountService.VerifyEmailCodeAsync(email, code);
             if (!success)
             {
-                ModelState.AddModelError(string.Empty, errorMessage ?? "Verification failed.");
-                return View();
+                return Json(new { success = false, errors = new[] { errorMessage ?? "Verification failed." } });
             }
 
-            TempData["SuccessMessage"] = "Email verified successfully! You can now log in.";
-            return RedirectToAction(nameof(Login));
+            return Json(new { success = true, redirectUrl = Url.Action(nameof(Login)) });
         }
 
         [HttpPost]
@@ -149,20 +129,16 @@ namespace PersonalFinanceTracker.Controllers
         {
             if (string.IsNullOrEmpty(email))
             {
-                return RedirectToAction(nameof(Login));
+                return Json(new { success = false, errors = new[] { "Email is required." } });
             }
 
             var (success, errorMessage) = await _accountService.ResendEmailVerificationCodeAsync(email);
             if (!success)
             {
-                TempData["ErrorMessage"] = errorMessage ?? "Failed to resend verification code.";
-            }
-            else
-            {
-                TempData["SuccessMessage"] = "A new verification code has been sent to your email.";
+                return Json(new { success = false, errors = new[] { errorMessage ?? "Failed to resend verification code." } });
             }
 
-            return RedirectToAction(nameof(VerifyEmail), new { email });
+            return Json(new { success = true, message = "A new verification code has been sent to your email." });
         }
 
         [HttpGet]

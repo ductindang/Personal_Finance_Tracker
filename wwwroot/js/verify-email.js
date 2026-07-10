@@ -116,20 +116,47 @@ const VerifyEmailPage = (() => {
                 }
             }
 
-            // Click listener for resending code
-            resendBtn.addEventListener('click', (e) => {
+            // Click listener for resending code via AJAX
+            resendBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 if (resendBtn.disabled) return;
 
-                // 1. Record cooldown timestamp in sessionStorage (persists across page reloads)
+                // 1. Record cooldown timestamp in sessionStorage
                 sessionStorage.setItem('verify_email_cooldown', (Date.now() + COOLDOWN_MS).toString());
                 
-                // 2. Synchronously disable UI button before POST action triggers (prevents double submits)
+                // 2. Disable UI button immediately
                 startCooldown(COOLDOWN_MS);
                 
-                // 3. Issue form POST submission in background
+                // 3. Issue form POST via AJAX
                 showToast("Sending...", "Requesting a new verification code...", "info");
-                resendForm.submit();
+
+                const formData = new FormData(resendForm);
+                const bodyData = new URLSearchParams(formData);
+
+                try {
+                    const response = await fetch(resendForm.action || window.location.pathname, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: bodyData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error("Server error");
+                    }
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        showToast("Success", result.message || "A new verification code has been sent.", "success");
+                    } else {
+                        const errorMsg = result.errors ? result.errors[0] : "Failed to resend code.";
+                        showToast("Verification Error", errorMsg, "error");
+                    }
+                } catch (error) {
+                    showToast("Connection Error", "Failed to resend code. Please check your connection.", "error");
+                }
             });
         }
     };
@@ -220,19 +247,51 @@ const VerifyEmailPage = (() => {
         }
     };
 
-    // 7. Form submission verification validation
+    // 7. Form submission verification validation via AJAX
     const initFormSubmit = () => {
         const form = document.querySelector(DOM.authForm);
-        if (form) {
-            form.addEventListener('submit', (e) => {
-                const codeInput = document.querySelector(DOM.codeValueInput);
-                // Reject form action if code does not match length requirement
-                if (!codeInput || codeInput.value.length !== 6) {
-                    e.preventDefault();
-                    showToast("Form Incomplete", "Please enter a valid 6-digit verification code.", "warning");
+        if (!form) return;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const codeInput = document.querySelector(DOM.codeValueInput);
+            if (!codeInput || codeInput.value.length !== 6) {
+                showToast("Form Incomplete", "Please enter a valid 6-digit verification code.", "warning");
+                return;
+            }
+
+            const formData = new FormData(form);
+            const bodyData = new URLSearchParams(formData);
+
+            try {
+                const response = await fetch(form.action || window.location.pathname, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: bodyData
+                });
+
+                if (!response.ok) {
+                    throw new Error("Server error");
                 }
-            });
-        }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast("Success", "Email verified successfully! Redirecting to login...", "success");
+                    setTimeout(() => {
+                        window.location.href = result.redirectUrl;
+                    }, 1500);
+                } else {
+                    const errorMsg = result.errors ? result.errors[0] : "Verification failed.";
+                    showToast("Verification Error", errorMsg, "error");
+                }
+            } catch (error) {
+                showToast("Connection Error", "Failed to contact the server. Please check your connection.", "error");
+            }
+        });
     };
 
     // Public API endpoints
